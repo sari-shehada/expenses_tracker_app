@@ -1,6 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 import '../../firebase_options.dart';
 import 'firebase_client.dart';
@@ -19,7 +19,7 @@ class FlutterFireClient implements FirebaseClient {
   }
 
   @override
-  void connectToStorageEmulator(String host, int port) {
-    FirebaseStorage.instance.useStorageEmulator(host, port);
+  void connectToFirestoreEmulator(String host, int port) {
+    FirebaseFirestore.instance.useFirestoreEmulator(host, port);
   }
 }

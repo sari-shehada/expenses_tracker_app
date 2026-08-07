@@ -9,7 +9,7 @@ class FirebaseInitializer {
   });
 
   static const authEmulatorPort = 9099;
-  static const storageEmulatorPort = 9199;
+  static const firestoreEmulatorPort = 8080;
 
   final FirebaseClient client;
   final FlavorSettings settings;
@@ -23,6 +23,6 @@ class FirebaseInitializer {
     }
 
     await client.connectToAuthEmulator(emulatorHost, authEmulatorPort);
-    client.connectToStorageEmulator(emulatorHost, storageEmulatorPort);
+    client.connectToFirestoreEmulator(emulatorHost, firestoreEmulatorPort);
   }
 }

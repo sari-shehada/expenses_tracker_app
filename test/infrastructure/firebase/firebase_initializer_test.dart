@@ -35,7 +35,7 @@ void main() {
     expect(client.calls, [
       'initialize',
       'auth:$emulatorHost:${FirebaseInitializer.authEmulatorPort}',
-      'storage:$emulatorHost:${FirebaseInitializer.storageEmulatorPort}',
+      'firestore:$emulatorHost:${FirebaseInitializer.firestoreEmulatorPort}',
     ]);
   });
 }
@@ -54,7 +54,7 @@ class _FakeFirebaseClient implements FirebaseClient {
   }
 
   @override
-  void connectToStorageEmulator(String host, int port) {
-    calls.add('storage:$host:$port');
+  void connectToFirestoreEmulator(String host, int port) {
+    calls.add('firestore:$host:$port');
   }
 }
