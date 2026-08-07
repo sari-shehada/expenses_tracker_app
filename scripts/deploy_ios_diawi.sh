@@ -29,6 +29,7 @@ flutter pub get
 echo "Building signed Ad Hoc IPA..."
 flutter build ipa \
   --release \
+  --dart-define=env=development \
   --export-options-plist="$EXPORT_OPTIONS"
 
 IPA_FILE=$(find "$PROJECT_ROOT/build/ios/ipa" -maxdepth 1 -type f -name "*.ipa" | head -n 1)
