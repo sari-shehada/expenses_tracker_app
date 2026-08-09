@@ -22,6 +22,10 @@ final class Authenticated extends AuthenticationState {
   final AuthUser user;
 }
 
+enum AuthenticationFailureReason { networkUnavailable, unknown }
+
 final class AuthenticationFailure extends AuthenticationState {
-  const AuthenticationFailure();
+  const AuthenticationFailure(this.reason);
+
+  final AuthenticationFailureReason reason;
 }

@@ -24,7 +24,8 @@ class AuthenticationBloc
       repository.authStateChanges,
       onData: (user) =>
           user == null ? const Unauthenticated() : Authenticated(user),
-      onError: (error, stackTrace) => const AuthenticationFailure(),
+      onError: (error, stackTrace) =>
+          const AuthenticationFailure(AuthenticationFailureReason.unknown),
     );
   }
 
@@ -37,8 +38,14 @@ class AuthenticationBloc
       await repository.signInWithGoogle();
     } on AuthSignInCancelled {
       emit(const Unauthenticated());
+    } on AuthNetworkUnavailable {
+      emit(
+        const AuthenticationFailure(
+          AuthenticationFailureReason.networkUnavailable,
+        ),
+      );
     } catch (_) {
-      emit(const AuthenticationFailure());
+      emit(const AuthenticationFailure(AuthenticationFailureReason.unknown));
     }
   }
 
@@ -50,7 +57,7 @@ class AuthenticationBloc
     try {
       await repository.signOut();
     } catch (_) {
-      emit(const AuthenticationFailure());
+      emit(const AuthenticationFailure(AuthenticationFailureReason.unknown));
     }
   }
 }

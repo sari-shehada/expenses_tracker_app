@@ -61,7 +61,31 @@ void main() {
     act: (bloc) => bloc.add(const GoogleSignInRequested()),
     expect: () => [
       isA<AuthenticationInProgress>(),
-      isA<AuthenticationFailure>(),
+      isA<AuthenticationFailure>().having(
+        (state) => state.reason,
+        'reason',
+        AuthenticationFailureReason.unknown,
+      ),
+    ],
+  );
+
+  blocTest<AuthenticationBloc, AuthenticationState>(
+    'reports that the network is unavailable during Google sign-in',
+    build: () {
+      repository = _FakeAuthRepository(
+        signInError: const AuthNetworkUnavailable(),
+      );
+      addTearDown(repository.dispose);
+      return AuthenticationBloc(repository: repository);
+    },
+    act: (bloc) => bloc.add(const GoogleSignInRequested()),
+    expect: () => [
+      isA<AuthenticationInProgress>(),
+      isA<AuthenticationFailure>().having(
+        (state) => state.reason,
+        'reason',
+        AuthenticationFailureReason.networkUnavailable,
+      ),
     ],
   );
 
