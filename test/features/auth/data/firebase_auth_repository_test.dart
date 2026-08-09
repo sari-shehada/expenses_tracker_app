@@ -70,6 +70,18 @@ void main() {
 
     expect(repository.signInWithGoogle(), throwsA(isA<AuthSignInCancelled>()));
   });
+
+  test('maps client network failures into a domain network failure', () {
+    final client = _FakeAuthClient(
+      signInError: const AuthClientNetworkUnavailable(),
+    );
+    final repository = FirebaseAuthRepository(client: client);
+
+    expect(
+      repository.signInWithGoogle(),
+      throwsA(isA<AuthNetworkUnavailable>()),
+    );
+  });
 }
 
 class _FakeAuthClient implements AuthClient {

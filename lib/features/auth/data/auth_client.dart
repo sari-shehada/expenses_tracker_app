@@ -16,6 +16,10 @@ final class AuthClientSignInCancelled implements Exception {
   const AuthClientSignInCancelled();
 }
 
+final class AuthClientNetworkUnavailable implements Exception {
+  const AuthClientNetworkUnavailable();
+}
+
 abstract interface class AuthClient {
   Stream<AuthClientUser?> get authStateChanges;
 

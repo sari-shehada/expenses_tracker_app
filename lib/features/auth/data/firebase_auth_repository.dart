@@ -18,6 +18,8 @@ class FirebaseAuthRepository implements AuthRepository {
       await client.signInWithGoogle();
     } on AuthClientSignInCancelled {
       throw const AuthSignInCancelled();
+    } on AuthClientNetworkUnavailable {
+      throw const AuthNetworkUnavailable();
     }
   }
 

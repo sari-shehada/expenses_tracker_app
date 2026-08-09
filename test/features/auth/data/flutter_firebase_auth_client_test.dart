@@ -73,6 +73,44 @@ void main() {
     );
   });
 
+  test(
+    'maps an ambiguous Google failure to network unavailable when offline',
+    () {
+      when(() => googleSignIn.authenticate()).thenThrow(
+        const GoogleSignInException(
+          code: GoogleSignInExceptionCode.unknownError,
+          description: '[16] Account reauth failed.',
+        ),
+      );
+      client = FlutterFirebaseAuthClient(
+        firebaseAuth: firebaseAuth,
+        googleSignIn: googleSignIn,
+        hasInternetAccess: () async => false,
+      );
+
+      expect(
+        client.signInWithGoogle(),
+        throwsA(isA<AuthClientNetworkUnavailable>()),
+      );
+    },
+  );
+
+  test('maps Firebase network failures to network unavailable', () {
+    final account = _MockGoogleSignInAccount();
+    when(() => googleSignIn.authenticate()).thenAnswer((_) async => account);
+    when(
+      () => account.authentication,
+    ).thenReturn(const GoogleSignInAuthentication(idToken: 'google-id-token'));
+    when(
+      () => firebaseAuth.signInWithCredential(any()),
+    ).thenThrow(FirebaseAuthException(code: 'network-request-failed'));
+
+    expect(
+      client.signInWithGoogle(),
+      throwsA(isA<AuthClientNetworkUnavailable>()),
+    );
+  });
+
   test('initializes Google Sign-In only once', () async {
     final account = _MockGoogleSignInAccount();
     final userCredential = _MockUserCredential();
