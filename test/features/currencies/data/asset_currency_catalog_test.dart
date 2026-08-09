@@ -59,6 +59,17 @@ void main() {
 
     expect(catalog.getAll(), throwsA(isA<CurrencyCatalogFormatException>()));
   });
+
+  test('retries loading after an asset read failure', () async {
+    final assetReader = _FailingThenWorkingAssetReader();
+    final catalog = AssetCurrencyCatalog(assetReader: assetReader);
+
+    await expectLater(catalog.getAll(), throwsA(isA<StateError>()));
+    final currencies = await catalog.getAll();
+
+    expect(assetReader.loadCalls, 2);
+    expect(currencies.single.code, 'USD');
+  });
 }
 
 const _singleCurrencyJson = r'''
@@ -80,4 +91,17 @@ class _FakeCurrencyAssetReader implements CurrencyAssetReader {
 
   @override
   Future<String> loadString(String assetPath) async => contents;
+}
+
+class _FailingThenWorkingAssetReader implements CurrencyAssetReader {
+  int loadCalls = 0;
+
+  @override
+  Future<String> loadString(String assetPath) async {
+    loadCalls++;
+    if (loadCalls == 1) {
+      throw StateError('Asset unavailable');
+    }
+    return _singleCurrencyJson;
+  }
 }

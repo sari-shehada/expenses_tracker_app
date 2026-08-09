@@ -14,7 +14,22 @@ class AssetCurrencyCatalog implements CurrencyCatalog {
 
   @override
   Future<List<Currency>> getAll() {
-    return _currencies ??= _loadCurrencies();
+    final cachedCurrencies = _currencies;
+    if (cachedCurrencies != null) {
+      return cachedCurrencies;
+    }
+
+    final currencies = _loadCurrencies();
+    _currencies = currencies;
+    currencies.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {
+        if (identical(_currencies, currencies)) {
+          _currencies = null;
+        }
+      },
+    );
+    return currencies;
   }
 
   @override
