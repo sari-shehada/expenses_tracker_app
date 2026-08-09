@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/authentication_bloc.dart';
 import '../bloc/authentication_event.dart';
 import '../bloc/authentication_state.dart';
+import 'network_unavailable_sheet.dart';
 import 'sign_in_page.dart';
 import 'signed_in_page.dart';
 
@@ -12,7 +13,18 @@ class AuthenticationGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthenticationBloc, AuthenticationState>(
+    return BlocConsumer<AuthenticationBloc, AuthenticationState>(
+      listenWhen: (previous, current) =>
+          current is AuthenticationFailure &&
+          current.reason == AuthenticationFailureReason.networkUnavailable,
+      listener: (context, state) {
+        showModalBottomSheet<void>(
+          context: context,
+          showDragHandle: true,
+          useSafeArea: true,
+          builder: (_) => const NetworkUnavailableSheet(),
+        );
+      },
       builder: (context, state) => switch (state) {
         Authenticated(:final user) => SignedInPage(
           user: user,
@@ -27,8 +39,10 @@ class AuthenticationGate extends StatelessWidget {
             );
           },
         ),
-        AuthenticationFailure() => SignInPage(
-          errorMessage: 'Sign-in failed. Please try again.',
+        AuthenticationFailure(:final reason) => SignInPage(
+          errorMessage: reason == AuthenticationFailureReason.unknown
+              ? 'Sign-in failed. Please try again.'
+              : null,
           onGoogleSignIn: () {
             context.read<AuthenticationBloc>().add(
               const GoogleSignInRequested(),
