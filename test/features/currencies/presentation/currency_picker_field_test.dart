@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:expenses_tracker/features/currencies/domain/currency.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency_catalog.dart';
-import 'package:expenses_tracker/features/currencies/presentation/currency_picker.dart';
+import 'package:expenses_tracker/features/currencies/presentation/currency_picker_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -29,7 +29,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: CurrencyPicker(catalog: catalog, onSelected: (_) {}),
+        home: CurrencyPickerField(catalog: catalog, onSelected: (_) {}),
       ),
     );
 
@@ -44,7 +44,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: CurrencyPicker(catalog: catalog, onSelected: (_) {}),
+        home: CurrencyPickerField(catalog: catalog, onSelected: (_) {}),
       ),
     );
     await tester.pump();
@@ -66,7 +66,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: CurrencyPicker(
+        home: CurrencyPickerField(
           catalog: _FlakyCurrencyCatalog(),
           onSelected: (currency) => selectedCurrency = currency,
         ),

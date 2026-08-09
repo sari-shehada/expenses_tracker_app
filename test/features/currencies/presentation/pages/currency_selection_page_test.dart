@@ -1,5 +1,5 @@
 import 'package:expenses_tracker/features/currencies/domain/currency.dart';
-import 'package:expenses_tracker/features/currencies/presentation/pages/currency_picker_page.dart';
+import 'package:expenses_tracker/features/currencies/presentation/pages/currency_selection_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -23,7 +23,7 @@ void main() {
 
   testWidgets('searches currencies by code and name', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: CurrencyPickerPage(currencies: currencies)),
+      const MaterialApp(home: CurrencySelectionPage(currencies: currencies)),
     );
 
     await tester.enterText(find.byType(TextField), 'dirham');
@@ -44,7 +44,7 @@ void main() {
               selectedCurrency = await Navigator.push<Currency>(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const CurrencyPickerPage(
+                  builder: (_) => const CurrencySelectionPage(
                     currencies: currencies,
                     selectedCode: 'USD',
                   ),

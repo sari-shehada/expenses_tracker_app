@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../domain/currency.dart';
 
-class CurrencyPickerPage extends StatefulWidget {
-  const CurrencyPickerPage({
+class CurrencySelectionPage extends StatefulWidget {
+  const CurrencySelectionPage({
     required this.currencies,
     this.selectedCode,
     super.key,
@@ -13,10 +13,10 @@ class CurrencyPickerPage extends StatefulWidget {
   final String? selectedCode;
 
   @override
-  State<CurrencyPickerPage> createState() => _CurrencyPickerPageState();
+  State<CurrencySelectionPage> createState() => _CurrencySelectionPageState();
 }
 
-class _CurrencyPickerPageState extends State<CurrencyPickerPage> {
+class _CurrencySelectionPageState extends State<CurrencySelectionPage> {
   String _query = '';
 
   @override

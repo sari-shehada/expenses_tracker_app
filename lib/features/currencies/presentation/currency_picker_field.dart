@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../domain/currency.dart';
 import '../domain/currency_catalog.dart';
-import 'pages/currency_picker_page.dart';
+import 'pages/currency_selection_page.dart';
 
 /// Lets a caller select a Currency from a [CurrencyCatalog].
 ///
 /// It loads the catalog, gives the user a way to retry a failed load, and
 /// reports the selected Currency through [onSelected].
-class CurrencyPicker extends StatefulWidget {
-  const CurrencyPicker({
+class CurrencyPickerField extends StatefulWidget {
+  const CurrencyPickerField({
     required this.catalog,
     required this.onSelected,
     this.selectedCurrency,
@@ -21,10 +21,10 @@ class CurrencyPicker extends StatefulWidget {
   final Currency? selectedCurrency;
 
   @override
-  State<CurrencyPicker> createState() => _CurrencyPickerState();
+  State<CurrencyPickerField> createState() => _CurrencyPickerFieldState();
 }
 
-class _CurrencyPickerState extends State<CurrencyPicker> {
+class _CurrencyPickerFieldState extends State<CurrencyPickerField> {
   late Future<List<Currency>> _currencies;
 
   @override
@@ -88,7 +88,7 @@ class _CurrencyPickerState extends State<CurrencyPicker> {
     final currency = await Navigator.push<Currency>(
       context,
       MaterialPageRoute(
-        builder: (_) => CurrencyPickerPage(
+        builder: (_) => CurrencySelectionPage(
           currencies: currencies,
           selectedCode: widget.selectedCurrency?.code,
         ),
