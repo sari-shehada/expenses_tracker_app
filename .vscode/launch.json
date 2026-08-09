@@ -2,12 +2,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Expenses Tracker (Local)",
-      "request": "launch",
-      "type": "dart",
-      "toolArgs": ["--dart-define=env=local"]
-    },
-    {
       "name": "Expenses Tracker (Development)",
       "request": "launch",
       "type": "dart",

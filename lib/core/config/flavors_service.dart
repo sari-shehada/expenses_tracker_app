@@ -1,13 +1,11 @@
 import 'flavor.dart';
-import 'flavor_settings.dart';
 
 const _environment = String.fromEnvironment('env', defaultValue: 'development');
 
 class FlavorsService {
-  const FlavorsService({required this.currentFlavor, required this.settings});
+  const FlavorsService({required this.currentFlavor});
 
   final Flavor currentFlavor;
-  final FlavorSettings settings;
 
   static late final FlavorsService instance;
   static bool _isInitialized = false;
@@ -18,10 +16,7 @@ class FlavorsService {
     }
 
     final flavor = flavorFromEnvironment(_environment);
-    instance = FlavorsService(
-      currentFlavor: flavor,
-      settings: getSettings(flavor),
-    );
+    instance = FlavorsService(currentFlavor: flavor);
     _isInitialized = true;
   }
 }
