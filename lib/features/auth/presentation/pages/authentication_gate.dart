@@ -6,7 +6,7 @@ import '../bloc/authentication_event.dart';
 import '../bloc/authentication_state.dart';
 import 'network_unavailable_sheet.dart';
 import 'sign_in_page.dart';
-import 'signed_in_page.dart';
+import 'authenticated_app_shell.dart';
 
 class AuthenticationGate extends StatelessWidget {
   const AuthenticationGate({super.key});
@@ -26,7 +26,7 @@ class AuthenticationGate extends StatelessWidget {
         );
       },
       builder: (context, state) => switch (state) {
-        Authenticated(:final user) => SignedInPage(
+        Authenticated(:final user) => AuthenticatedAppShell(
           user: user,
           onSignOut: () {
             context.read<AuthenticationBloc>().add(const SignOutRequested());
