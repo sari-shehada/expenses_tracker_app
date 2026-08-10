@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../app/dependency_injection.dart';
+import '../../../currencies/domain/currency_catalog.dart';
+import '../../../wallets/domain/wallet_repository.dart';
 import '../bloc/authentication_bloc.dart';
 import '../bloc/authentication_event.dart';
 import '../bloc/authentication_state.dart';
@@ -28,6 +31,8 @@ class AuthenticationGate extends StatelessWidget {
       builder: (context, state) => switch (state) {
         Authenticated(:final user) => AuthenticatedAppShell(
           user: user,
+          walletRepository: serviceLocator<WalletRepository>(),
+          currencyCatalog: serviceLocator<CurrencyCatalog>(),
           onSignOut: () {
             context.read<AuthenticationBloc>().add(const SignOutRequested());
           },

@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../../../currencies/domain/currency_catalog.dart';
+import '../../../wallets/domain/wallet_repository.dart';
+import '../../../wallets/presentation/pages/wallets_page.dart';
 import '../../domain/auth_user.dart';
 
 class AuthenticatedAppShell extends StatefulWidget {
   const AuthenticatedAppShell({
     required this.user,
     required this.onSignOut,
+    required this.walletRepository,
+    required this.currencyCatalog,
     super.key,
   });
 
   final AuthUser user;
   final VoidCallback onSignOut;
+  final WalletRepository walletRepository;
+  final CurrencyCatalog currencyCatalog;
 
   @override
   State<AuthenticatedAppShell> createState() => _AuthenticatedAppShellState();
@@ -36,9 +43,10 @@ class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
               title: 'Sheets',
               message: 'Sheets will appear here.',
             )
-          : const _FeaturePlaceholder(
-              title: 'Wallets',
-              message: 'Wallets will appear here.',
+          : WalletsPage(
+              userId: widget.user.id,
+              repository: widget.walletRepository,
+              currencyCatalog: widget.currencyCatalog,
             ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
