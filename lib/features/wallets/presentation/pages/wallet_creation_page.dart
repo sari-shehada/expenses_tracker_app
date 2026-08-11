@@ -37,6 +37,12 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(24),
+      borderSide: BorderSide(color: colorScheme.outlineVariant),
+    );
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -55,7 +61,36 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
               const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(
+                  labelText: 'Wallet name',
+                  filled: true,
+                  fillColor: Color.alphaBlend(
+                    colorScheme.primaryContainer.withAlpha(48),
+                    colorScheme.surface,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 22,
+                  ),
+                  border: inputBorder,
+                  enabledBorder: inputBorder,
+                  focusedBorder: inputBorder.copyWith(
+                    borderSide: BorderSide(
+                      color: colorScheme.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                  errorBorder: inputBorder.copyWith(
+                    borderSide: BorderSide(color: colorScheme.error),
+                  ),
+                  focusedErrorBorder: inputBorder.copyWith(
+                    borderSide: BorderSide(
+                      color: colorScheme.error,
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+                style: Theme.of(context).textTheme.titleMedium,
                 textInputAction: TextInputAction.done,
                 validator: _validateName,
               ),

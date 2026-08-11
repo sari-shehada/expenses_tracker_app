@@ -35,42 +35,60 @@ class _CurrencyPickerFieldState extends State<CurrencyPickerField> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Currency>>(
-      future: _currencies,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Could not load currencies.'),
-              TextButton(
-                onPressed: _loadCurrencies,
-                child: const Text('Try again'),
-              ),
-            ],
-          );
-        }
+    final textTheme = Theme.of(context).textTheme;
 
-        if (!snapshot.hasData) {
-          return const OutlinedButton(
-            onPressed: null,
-            child: Text('Loading currencies'),
-          );
-        }
-
-        return OutlinedButton(
-          onPressed: () => _selectCurrency(context, snapshot.data!),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              widget.selectedCurrency == null
-                  ? 'Select currency'
-                  : '${widget.selectedCurrency!.code} · ${widget.selectedCurrency!.name}',
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Currency',
+          style: textTheme.labelLarge?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-        );
-      },
+        ),
+        const SizedBox(height: 8),
+        FutureBuilder<List<Currency>>(
+          future: _currencies,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return _CurrencyFieldSurface(
+                borderColor: Theme.of(context).colorScheme.error,
+                child: Row(
+                  children: [
+                    const Expanded(child: Text('Could not load currencies.')),
+                    TextButton(
+                      onPressed: _loadCurrencies,
+                      child: const Text('Try again'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (!snapshot.hasData) {
+              return const _CurrencyFieldSurface(
+                child: Row(
+                  children: [
+                    SizedBox.square(
+                      dimension: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 16),
+                    Text('Loading currencies'),
+                  ],
+                ),
+              );
+            }
+
+            return _CurrencyFieldSurface(
+              onTap: () => _selectCurrency(context, snapshot.data!),
+              child: _CurrencyFieldContent(
+                selectedCurrency: widget.selectedCurrency,
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -98,5 +116,117 @@ class _CurrencyPickerFieldState extends State<CurrencyPickerField> {
     if (currency != null && mounted) {
       widget.onSelected(currency);
     }
+  }
+}
+
+class _CurrencyFieldSurface extends StatelessWidget {
+  const _CurrencyFieldSurface({
+    required this.child,
+    this.onTap,
+    this.borderColor,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final Color? borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final borderRadius = BorderRadius.circular(24);
+
+    return Material(
+      key: const ValueKey('currency-picker-surface'),
+      color: Color.alphaBlend(
+        colorScheme.primaryContainer.withAlpha(48),
+        colorScheme.surface,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: borderRadius,
+        side: BorderSide(color: borderColor ?? colorScheme.outlineVariant),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: borderRadius,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 96),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CurrencyFieldContent extends StatelessWidget {
+  const _CurrencyFieldContent({required this.selectedCurrency});
+
+  final Currency? selectedCurrency;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Row(
+      children: [
+        Container(
+          width: 56,
+          height: 56,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: selectedCurrency == null
+              ? Icon(
+                  Icons.currency_exchange_rounded,
+                  color: colorScheme.onPrimaryContainer,
+                )
+              : FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      selectedCurrency!.symbol,
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: selectedCurrency == null
+              ? Text('Select currency', style: textTheme.titleMedium)
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      selectedCurrency!.code,
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      selectedCurrency!.name,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+        const SizedBox(width: 12),
+        const Icon(Icons.chevron_right_rounded),
+      ],
+    );
   }
 }

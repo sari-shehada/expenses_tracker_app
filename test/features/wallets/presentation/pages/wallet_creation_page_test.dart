@@ -37,6 +37,21 @@ void main() {
     expect(repository.createCalls, 0);
   });
 
+  testWidgets('uses the rounded Wallet name field treatment', (tester) async {
+    await _pumpPage(tester, repository: _FakeWalletRepository());
+
+    final nameField = tester.widget<TextField>(
+      find.descendant(
+        of: find.byType(TextFormField),
+        matching: find.byType(TextField),
+      ),
+    );
+    final border = nameField.decoration!.enabledBorder! as OutlineInputBorder;
+
+    expect(nameField.decoration!.labelText, 'Wallet name');
+    expect(border.borderRadius, BorderRadius.circular(24));
+  });
+
   testWidgets('creates a Wallet with the selected currency', (tester) async {
     final repository = _FakeWalletRepository();
 
@@ -84,6 +99,11 @@ Future<void> _pumpPage(
   WidgetTester tester, {
   required WalletRepository repository,
 }) {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
   return tester.pumpWidget(
     MaterialApp(
       theme: AppTheme.light,

@@ -81,6 +81,33 @@ void main() {
 
     expect(selectedCurrency?.code, 'AED');
   });
+
+  testWidgets('shows selected currency details in a rounded field', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CurrencyPickerField(
+          catalog: _FlakyCurrencyCatalog(),
+          selectedCurrency: currencies[1],
+          onSelected: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Currency'), findsOneWidget);
+    expect(find.text(r'$'), findsOneWidget);
+    expect(find.text('USD'), findsOneWidget);
+    expect(find.text('US Dollar'), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
+
+    final surface = tester.widget<Material>(
+      find.byKey(const ValueKey('currency-picker-surface')),
+    );
+    final shape = surface.shape! as RoundedRectangleBorder;
+    expect(shape.borderRadius, BorderRadius.circular(24));
+  });
 }
 
 class _ControllableCurrencyCatalog implements CurrencyCatalog {
