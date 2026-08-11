@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:expenses_tracker/app/app_theme.dart';
 import 'package:expenses_tracker/app/expenses_tracker_app.dart';
 import 'package:expenses_tracker/features/auth/domain/auth_exceptions.dart';
 import 'package:expenses_tracker/features/auth/domain/auth_repository.dart';
@@ -21,6 +22,9 @@ void main() {
 
     expect(find.byType(MaterialApp), findsOneWidget);
     expect(find.text('Continue with Google'), findsOneWidget);
+
+    final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(materialApp.theme, same(AppTheme.light));
   });
 
   testWidgets('shows a dismissible offline sheet and allows another attempt', (
