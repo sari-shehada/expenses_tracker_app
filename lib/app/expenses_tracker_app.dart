@@ -20,8 +20,18 @@ class ExpensesTrackerApp extends StatelessWidget {
             ..add(const AuthenticationSubscriptionRequested()),
       child: MaterialApp(
         theme: AppTheme.light,
+        scrollBehavior: const _BouncyScrollBehavior(),
         home: const AuthenticationGate(),
       ),
     );
+  }
+}
+
+class _BouncyScrollBehavior extends MaterialScrollBehavior {
+  const _BouncyScrollBehavior();
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const BouncingScrollPhysics();
   }
 }

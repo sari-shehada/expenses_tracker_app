@@ -25,6 +25,12 @@ void main() {
 
     final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
     expect(materialApp.theme, same(AppTheme.light));
+    expect(
+      materialApp.scrollBehavior!.getScrollPhysics(
+        tester.element(find.byType(MaterialApp)),
+      ),
+      isA<BouncingScrollPhysics>(),
+    );
   });
 
   testWidgets('shows a dismissible offline sheet and allows another attempt', (
