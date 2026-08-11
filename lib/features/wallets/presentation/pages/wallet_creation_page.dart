@@ -38,13 +38,21 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('New Wallet')),
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text(
+          'Add wallet',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
       body: SafeArea(
         child: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
             children: [
+              const _WalletCreationHero(),
+              const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Name'),
@@ -131,5 +139,39 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
         setState(() => _isSaving = false);
       }
     }
+  }
+}
+
+class _WalletCreationHero extends StatelessWidget {
+  const _WalletCreationHero();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 320),
+          child: const AspectRatio(
+            aspectRatio: 1.35,
+            child: Image(
+              key: ValueKey('wallet-creation-hero'),
+              image: AssetImage('assets/images/wallet_creation_hero.png'),
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Keep track of where your\nmoney comes from.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.w700,
+            height: 1.35,
+          ),
+        ),
+      ],
+    );
   }
 }

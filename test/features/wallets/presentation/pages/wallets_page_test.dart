@@ -65,7 +65,7 @@ void main() {
     await tester.tap(find.text('Add Wallet'));
     await tester.pumpAndSettle();
 
-    expect(find.text('New Wallet'), findsOneWidget);
+    expect(find.text('Add wallet'), findsOneWidget);
   });
 }
 

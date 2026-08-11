@@ -1,3 +1,4 @@
+import 'package:expenses_tracker/app/app_theme.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency_catalog.dart';
 import 'package:expenses_tracker/features/wallets/domain/wallet.dart';
@@ -7,10 +8,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('shows the redesigned page foundation and hero', (tester) async {
+    await _pumpPage(tester, repository: _FakeWalletRepository());
+
+    expect(find.text('Add wallet'), findsOneWidget);
+    expect(
+      find.text('Keep track of where your\nmoney comes from.'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('wallet-creation-hero')), findsOneWidget);
+
+    final heading = tester.widget<Text>(
+      find.text('Keep track of where your\nmoney comes from.'),
+    );
+    expect(heading.style?.color, AppTheme.light.colorScheme.onSurface);
+  });
+
   testWidgets('requires a non-blank name and a currency', (tester) async {
     final repository = _FakeWalletRepository();
 
     await _pumpPage(tester, repository: repository);
+    await tester.ensureVisible(find.text('Create Wallet'));
     await tester.tap(find.text('Create Wallet'));
     await tester.pump();
 
@@ -28,6 +46,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('USD')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Create Wallet'));
     await tester.tap(find.text('Create Wallet'));
     await tester.pump();
 
@@ -45,12 +64,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('USD')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Create Wallet'));
     await tester.tap(find.text('Create Wallet'));
     await tester.pump();
 
     expect(find.text('Could not save Wallet.'), findsOneWidget);
 
     repository.shouldFail = false;
+    await tester.drag(find.byType(ListView), const Offset(0, -200));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Try again'));
     await tester.pump();
 
@@ -64,6 +86,7 @@ Future<void> _pumpPage(
 }) {
   return tester.pumpWidget(
     MaterialApp(
+      theme: AppTheme.light,
       home: WalletCreationPage(
         userId: 'user-id',
         repository: repository,
