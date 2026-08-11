@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:expenses_tracker/app/app_theme.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency_catalog.dart';
@@ -28,8 +30,7 @@ void main() {
     final repository = _FakeWalletRepository();
 
     await _pumpPage(tester, repository: repository);
-    await tester.ensureVisible(find.text('Create Wallet'));
-    await tester.tap(find.text('Create Wallet'));
+    await tester.tap(find.text('Create wallet'));
     await tester.pump();
 
     expect(find.text('Enter a Wallet name.'), findsOneWidget);
@@ -61,8 +62,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('USD')));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Create Wallet'));
-    await tester.tap(find.text('Create Wallet'));
+    await tester.tap(find.text('Create wallet'));
     await tester.pump();
 
     expect(repository.createdUserId, 'user-id');
@@ -79,27 +79,115 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('USD')));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Create Wallet'));
-    await tester.tap(find.text('Create Wallet'));
+    await tester.tap(find.text('Create wallet'));
     await tester.pump();
 
     expect(find.text('Could not save Wallet.'), findsOneWidget);
 
     repository.shouldFail = false;
-    await tester.drag(find.byType(ListView), const Offset(0, -200));
-    await tester.pumpAndSettle();
     await tester.tap(find.text('Try again'));
     await tester.pump();
 
     expect(repository.createCalls, 2);
+  });
+
+  testWidgets('keeps a rounded create action visible on a compact screen', (
+    tester,
+  ) async {
+    await _pumpPage(
+      tester,
+      repository: _FakeWalletRepository(),
+      size: const Size(320, 568),
+    );
+
+    expect(
+      find.byKey(const ValueKey('create-wallet-button')).hitTestable(),
+      findsOneWidget,
+    );
+
+    final button = tester.widget<FilledButton>(
+      find.byKey(const ValueKey('create-wallet-button')),
+    );
+    final shape = button.style!.shape!.resolve({})! as RoundedRectangleBorder;
+    final minimumSize = button.style!.minimumSize!.resolve({})!;
+
+    expect(shape.borderRadius, BorderRadius.circular(24));
+    expect(minimumSize.height, 60);
+  });
+
+  testWidgets('disables the action and reports progress while saving', (
+    tester,
+  ) async {
+    final saveCompleter = Completer<void>();
+    final repository = _FakeWalletRepository(saveCompleter: saveCompleter);
+
+    await _pumpPage(tester, repository: repository);
+    await tester.enterText(find.byType(TextFormField), 'Cash');
+    await tester.tap(find.text('Select currency'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('USD')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create wallet'));
+    await tester.pump();
+
+    final button = tester.widget<FilledButton>(
+      find.byKey(const ValueKey('create-wallet-button')),
+    );
+    expect(button.onPressed, isNull);
+    expect(find.text('Creating wallet'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    saveCompleter.complete();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets(
+    'keeps the action visible when the keyboard reduces the viewport',
+    (tester) async {
+      await _pumpPage(
+        tester,
+        repository: _FakeWalletRepository(),
+        size: const Size(390, 700),
+      );
+      tester.view.viewInsets = const FakeViewPadding(bottom: 280);
+      addTearDown(tester.view.resetViewInsets);
+
+      await tester.tap(find.byType(TextFormField));
+      await tester.showKeyboard(find.byType(TextFormField));
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('create-wallet-button')).hitTestable(),
+        findsOneWidget,
+      );
+      await tester.drag(find.byType(ListView), const Offset(0, -160));
+      await tester.pump();
+      expect(find.byType(TextFormField), findsOneWidget);
+    },
+  );
+
+  testWidgets('meets tap-target and labeling accessibility guidelines', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    try {
+      await _pumpPage(tester, repository: _FakeWalletRepository());
+      await tester.pump();
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    } finally {
+      semantics.dispose();
+    }
   });
 }
 
 Future<void> _pumpPage(
   WidgetTester tester, {
   required WalletRepository repository,
+  Size size = const Size(390, 844),
 }) {
-  tester.view.physicalSize = const Size(390, 844);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -133,9 +221,10 @@ class _FakeCurrencyCatalog implements CurrencyCatalog {
 }
 
 class _FakeWalletRepository implements WalletRepository {
-  _FakeWalletRepository({this.shouldFail = false});
+  _FakeWalletRepository({this.shouldFail = false, this.saveCompleter});
 
   bool shouldFail;
+  final Completer<void>? saveCompleter;
   int createCalls = 0;
   String? createdUserId;
   String? createdName;
@@ -151,6 +240,8 @@ class _FakeWalletRepository implements WalletRepository {
     createdUserId = userId;
     createdName = name;
     createdCurrencyCode = currencyCode;
+
+    await saveCompleter?.future;
 
     if (shouldFail) {
       throw StateError('Could not save Wallet');

@@ -74,7 +74,7 @@ class _CurrencyPickerFieldState extends State<CurrencyPickerField> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                     SizedBox(width: 16),
-                    Text('Loading currencies'),
+                    Expanded(child: Text('Loading currencies')),
                   ],
                 ),
               );
@@ -82,6 +82,9 @@ class _CurrencyPickerFieldState extends State<CurrencyPickerField> {
 
             return _CurrencyFieldSurface(
               onTap: () => _selectCurrency(context, snapshot.data!),
+              semanticsLabel: widget.selectedCurrency == null
+                  ? 'Select currency'
+                  : 'Currency: ${widget.selectedCurrency!.code}, ${widget.selectedCurrency!.name}',
               child: _CurrencyFieldContent(
                 selectedCurrency: widget.selectedCurrency,
               ),
@@ -124,18 +127,20 @@ class _CurrencyFieldSurface extends StatelessWidget {
     required this.child,
     this.onTap,
     this.borderColor,
+    this.semanticsLabel,
   });
 
   final Widget child;
   final VoidCallback? onTap;
   final Color? borderColor;
+  final String? semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final borderRadius = BorderRadius.circular(24);
 
-    return Material(
+    final field = Material(
       key: const ValueKey('currency-picker-surface'),
       color: Color.alphaBlend(
         colorScheme.primaryContainer.withAlpha(48),
@@ -157,6 +162,18 @@ class _CurrencyFieldSurface extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    if (onTap == null) {
+      return field;
+    }
+
+    return Semantics(
+      button: true,
+      container: true,
+      label: semanticsLabel,
+      excludeSemantics: true,
+      child: field,
     );
   }
 }

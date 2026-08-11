@@ -54,72 +54,82 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
       body: SafeArea(
         child: Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          child: Column(
             children: [
-              const _WalletCreationHero(),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Wallet name',
-                  filled: true,
-                  fillColor: Color.alphaBlend(
-                    colorScheme.primaryContainer.withAlpha(48),
-                    colorScheme.surface,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 22,
-                  ),
-                  border: inputBorder,
-                  enabledBorder: inputBorder,
-                  focusedBorder: inputBorder.copyWith(
-                    borderSide: BorderSide(
-                      color: colorScheme.primary,
-                      width: 1.5,
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                  children: [
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 560),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const _WalletCreationHero(),
+                            const SizedBox(height: 24),
+                            TextFormField(
+                              controller: _nameController,
+                              decoration: InputDecoration(
+                                labelText: 'Wallet name',
+                                filled: true,
+                                fillColor: Color.alphaBlend(
+                                  colorScheme.primaryContainer.withAlpha(48),
+                                  colorScheme.surface,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 22,
+                                ),
+                                border: inputBorder,
+                                enabledBorder: inputBorder,
+                                focusedBorder: inputBorder.copyWith(
+                                  borderSide: BorderSide(
+                                    color: colorScheme.primary,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                errorBorder: inputBorder.copyWith(
+                                  borderSide: BorderSide(
+                                    color: colorScheme.error,
+                                  ),
+                                ),
+                                focusedErrorBorder: inputBorder.copyWith(
+                                  borderSide: BorderSide(
+                                    color: colorScheme.error,
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
+                              style: Theme.of(context).textTheme.titleMedium,
+                              textInputAction: TextInputAction.done,
+                              validator: _validateName,
+                            ),
+                            const SizedBox(height: 16),
+                            CurrencyPickerField(
+                              catalog: widget.currencyCatalog,
+                              selectedCurrency: _currency,
+                              onSelected: _selectCurrency,
+                            ),
+                            if (_currencyIsMissing) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                'Select a currency.',
+                                style: TextStyle(color: colorScheme.error),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                  errorBorder: inputBorder.copyWith(
-                    borderSide: BorderSide(color: colorScheme.error),
-                  ),
-                  focusedErrorBorder: inputBorder.copyWith(
-                    borderSide: BorderSide(
-                      color: colorScheme.error,
-                      width: 1.5,
-                    ),
-                  ),
+                  ],
                 ),
-                style: Theme.of(context).textTheme.titleMedium,
-                textInputAction: TextInputAction.done,
-                validator: _validateName,
               ),
-              const SizedBox(height: 16),
-              CurrencyPickerField(
-                catalog: widget.currencyCatalog,
-                selectedCurrency: _currency,
-                onSelected: _selectCurrency,
+              _WalletCreationFooter(
+                isSaving: _isSaving,
+                saveFailed: _saveFailed,
+                onCreate: _createWallet,
               ),
-              if (_currencyIsMissing) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'Select a currency.',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _isSaving ? null : _createWallet,
-                child: Text(_isSaving ? 'Creating Wallet' : 'Create Wallet'),
-              ),
-              if (_saveFailed) ...[
-                const SizedBox(height: 16),
-                const Text('Could not save Wallet.'),
-                TextButton(
-                  onPressed: _isSaving ? null : _createWallet,
-                  child: const Text('Try again'),
-                ),
-              ],
             ],
           ),
         ),
@@ -174,6 +184,101 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
         setState(() => _isSaving = false);
       }
     }
+  }
+}
+
+class _WalletCreationFooter extends StatelessWidget {
+  const _WalletCreationFooter({
+    required this.isSaving,
+    required this.saveFailed,
+    required this.onCreate,
+  });
+
+  final bool isSaving;
+  final bool saveFailed;
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      key: const ValueKey('wallet-creation-footer'),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (saveFailed) ...[
+                Semantics(
+                  liveRegion: true,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline_rounded,
+                        color: colorScheme.error,
+                      ),
+                      const SizedBox(width: 8),
+                      const Expanded(child: Text('Could not save Wallet.')),
+                      TextButton(
+                        onPressed: isSaving ? null : onCreate,
+                        child: const Text('Try again'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  key: const ValueKey('create-wallet-button'),
+                  onPressed: isSaving ? null : onCreate,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(60),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    disabledBackgroundColor: colorScheme.primary,
+                    disabledForegroundColor: colorScheme.onPrimary,
+                    textStyle: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  child: Semantics(
+                    liveRegion: isSaving,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: isSaving
+                          ? Row(
+                              key: const ValueKey('creating-wallet'),
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox.square(
+                                  dimension: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colorScheme.onPrimary,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text('Creating wallet'),
+                              ],
+                            )
+                          : const Text(
+                              'Create wallet',
+                              key: ValueKey('create-wallet'),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
