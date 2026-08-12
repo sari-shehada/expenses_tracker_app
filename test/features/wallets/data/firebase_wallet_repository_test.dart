@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:expenses_tracker/features/wallets/data/firebase_wallet_repository.dart';
 import 'package:expenses_tracker/features/wallets/data/wallet_store.dart';
 import 'package:expenses_tracker/features/wallets/domain/wallet.dart';
+import 'package:expenses_tracker/features/wallets/domain/wallet_appearance.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -10,7 +11,12 @@ void main() {
     final store = _FakeWalletStore(
       createdWallet: const WalletDocument(
         id: 'wallet-id',
-        data: {'name': 'Cash', 'currencyCode': 'USD'},
+        data: {
+          'name': 'Cash',
+          'currencyCode': 'USD',
+          'colorKey': 'sky',
+          'iconKey': 'cash',
+        },
       ),
     );
     final repository = FirebaseWalletRepository(store: store);
@@ -19,14 +25,55 @@ void main() {
       userId: 'user-id',
       name: 'Cash',
       currencyCode: 'USD',
+      colorKey: 'sky',
+      iconKey: 'cash',
     );
 
     expect(
       wallet,
-      const Wallet(id: 'wallet-id', name: 'Cash', currencyCode: 'USD'),
+      const Wallet(
+        id: 'wallet-id',
+        name: 'Cash',
+        currencyCode: 'USD',
+        colorKey: 'sky',
+        iconKey: 'cash',
+      ),
     );
     expect(store.createdUserId, 'user-id');
-    expect(store.createdData, {'name': 'Cash', 'currencyCode': 'USD'});
+    expect(store.createdData, {
+      'name': 'Cash',
+      'currencyCode': 'USD',
+      'colorKey': 'sky',
+      'iconKey': 'cash',
+    });
+  });
+
+  test('persists the default appearance when none is provided', () async {
+    final store = _FakeWalletStore(
+      createdWallet: const WalletDocument(
+        id: 'wallet-id',
+        data: {
+          'name': 'Cash',
+          'currencyCode': 'USD',
+          'colorKey': WalletAppearance.defaultColorKey,
+          'iconKey': WalletAppearance.defaultIconKey,
+        },
+      ),
+    );
+    final repository = FirebaseWalletRepository(store: store);
+
+    await repository.createWallet(
+      userId: 'user-id',
+      name: 'Cash',
+      currencyCode: 'USD',
+    );
+
+    expect(store.createdData, {
+      'name': 'Cash',
+      'currencyCode': 'USD',
+      'colorKey': WalletAppearance.defaultColorKey,
+      'iconKey': WalletAppearance.defaultIconKey,
+    });
   });
 
   test('maps Wallet documents from the signed-in user collection', () {
@@ -38,7 +85,13 @@ void main() {
     expect(
       repository.watchWallets(userId: 'user-id'),
       emits([
-        const Wallet(id: 'cash-id', name: 'Cash', currencyCode: 'USD'),
+        const Wallet(
+          id: 'cash-id',
+          name: 'Cash',
+          currencyCode: 'USD',
+          colorKey: 'sky',
+          iconKey: 'cash',
+        ),
         const Wallet(id: 'card-id', name: 'Card', currencyCode: 'EUR'),
       ]),
     );
@@ -46,7 +99,12 @@ void main() {
     controller.add([
       const WalletDocument(
         id: 'cash-id',
-        data: {'name': 'Cash', 'currencyCode': 'USD'},
+        data: {
+          'name': 'Cash',
+          'currencyCode': 'USD',
+          'colorKey': 'sky',
+          'iconKey': 'cash',
+        },
       ),
       const WalletDocument(
         id: 'card-id',

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:expenses_tracker/features/currencies/domain/currency.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency_catalog.dart';
 import 'package:expenses_tracker/features/wallets/domain/wallet.dart';
+import 'package:expenses_tracker/features/wallets/domain/wallet_appearance.dart';
 import 'package:expenses_tracker/features/wallets/domain/wallet_repository.dart';
 import 'package:expenses_tracker/features/wallets/presentation/pages/wallets_page.dart';
 import 'package:flutter/material.dart';
@@ -99,7 +100,15 @@ class _FakeWalletRepository implements WalletRepository {
     required String userId,
     required String name,
     required String currencyCode,
-  }) async => Wallet(id: 'wallet-id', name: name, currencyCode: currencyCode);
+    String colorKey = WalletAppearance.defaultColorKey,
+    String iconKey = WalletAppearance.defaultIconKey,
+  }) async => Wallet(
+    id: 'wallet-id',
+    name: name,
+    currencyCode: currencyCode,
+    colorKey: colorKey,
+    iconKey: iconKey,
+  );
 
   @override
   Stream<List<Wallet>> watchWallets({required String userId}) {

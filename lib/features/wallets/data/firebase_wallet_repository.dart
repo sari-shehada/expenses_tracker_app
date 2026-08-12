@@ -1,4 +1,5 @@
 import '../domain/wallet.dart';
+import '../domain/wallet_appearance.dart';
 import '../domain/wallet_repository.dart';
 import 'wallet_store.dart';
 
@@ -12,10 +13,17 @@ class FirebaseWalletRepository implements WalletRepository {
     required String userId,
     required String name,
     required String currencyCode,
+    String colorKey = WalletAppearance.defaultColorKey,
+    String iconKey = WalletAppearance.defaultIconKey,
   }) async {
     final document = await store.createWallet(
       userId: userId,
-      data: {'name': name, 'currencyCode': currencyCode},
+      data: {
+        'name': name,
+        'currencyCode': currencyCode,
+        'colorKey': colorKey,
+        'iconKey': iconKey,
+      },
     );
 
     return _walletFromDocument(document);
@@ -33,6 +41,12 @@ class FirebaseWalletRepository implements WalletRepository {
       id: document.id,
       name: document.data['name']! as String,
       currencyCode: document.data['currencyCode']! as String,
+      colorKey:
+          document.data['colorKey'] as String? ??
+          WalletAppearance.defaultColorKey,
+      iconKey:
+          document.data['iconKey'] as String? ??
+          WalletAppearance.defaultIconKey,
     );
   }
 }
