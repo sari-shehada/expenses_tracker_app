@@ -8,6 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('does not show a global app bar', (tester) async {
+    await _pumpPage(tester);
+
+    expect(find.byType(AppBar), findsNothing);
+    expect(find.text('Expenses Tracker'), findsNothing);
+    expect(find.text('Sign out'), findsNothing);
+  });
+
   testWidgets('shows Sheets as the default destination', (tester) async {
     await _pumpPage(tester);
 

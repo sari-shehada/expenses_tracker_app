@@ -30,15 +30,6 @@ class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Expenses Tracker'),
-        actions: [
-          TextButton(
-            onPressed: widget.onSignOut,
-            child: const Text('Sign out'),
-          ),
-        ],
-      ),
       body: _selectedIndex == 0
           ? SheetsPage(onAddSheet: () {})
           : WalletsPage(
