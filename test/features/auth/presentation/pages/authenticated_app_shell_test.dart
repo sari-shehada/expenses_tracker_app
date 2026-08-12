@@ -42,9 +42,31 @@ void main() {
     expect(find.text('No Wallets yet.'), findsOneWidget);
     expect(find.text('No Sheets yet'), findsNothing);
   });
+
+  testWidgets('opens Settings from the bottom navigation', (tester) async {
+    await _pumpPage(tester);
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('sign-out-button')), findsOneWidget);
+    expect(find.text('No Sheets yet'), findsNothing);
+    expect(find.text('No Wallets yet.'), findsNothing);
+  });
+
+  testWidgets('signs out from Settings', (tester) async {
+    var signOutCalls = 0;
+    await _pumpPage(tester, onSignOut: () => signOutCalls++);
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('sign-out-button')));
+
+    expect(signOutCalls, 1);
+  });
 }
 
-Future<void> _pumpPage(WidgetTester tester) {
+Future<void> _pumpPage(WidgetTester tester, {VoidCallback? onSignOut}) {
   return tester.pumpWidget(
     MaterialApp(
       home: AuthenticatedAppShell(
@@ -54,7 +76,7 @@ Future<void> _pumpPage(WidgetTester tester) {
           displayName: 'User',
           photoUrl: null,
         ),
-        onSignOut: () {},
+        onSignOut: onSignOut ?? () {},
         walletRepository: _FakeWalletRepository(),
         currencyCatalog: _FakeCurrencyCatalog(),
       ),

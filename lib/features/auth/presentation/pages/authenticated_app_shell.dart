@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../currencies/domain/currency_catalog.dart';
+import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../sheets/presentation/pages/sheets_page.dart';
 import '../../../wallets/domain/wallet_repository.dart';
 import '../../../wallets/presentation/pages/wallets_page.dart';
@@ -29,14 +30,18 @@ class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final pages = [
+      SheetsPage(onAddSheet: () {}),
+      WalletsPage(
+        userId: widget.user.id,
+        repository: widget.walletRepository,
+        currencyCatalog: widget.currencyCatalog,
+      ),
+      SettingsPage(onSignOut: widget.onSignOut),
+    ];
+
     return Scaffold(
-      body: _selectedIndex == 0
-          ? SheetsPage(onAddSheet: () {})
-          : WalletsPage(
-              userId: widget.user.id,
-              repository: widget.walletRepository,
-              currencyCatalog: widget.currencyCatalog,
-            ),
+      body: pages[_selectedIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) =>
@@ -51,6 +56,11 @@ class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
             icon: Icon(Icons.account_balance_wallet_outlined),
             selectedIcon: Icon(Icons.account_balance_wallet),
             label: 'Wallets',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
       ),
