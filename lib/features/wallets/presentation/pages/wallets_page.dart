@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../currencies/domain/currency_catalog.dart';
 import '../../domain/wallet.dart';
 import '../../domain/wallet_repository.dart';
+import '../widgets/wallet_card.dart';
 import 'wallet_creation_page.dart';
 
 class WalletsPage extends StatefulWidget {
@@ -32,54 +33,49 @@ class _WalletsPageState extends State<WalletsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        StreamBuilder<List<Wallet>>(
-          stream: _wallets,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Could not load Wallets.'),
-                    TextButton(
-                      onPressed: _reloadWallets,
-                      child: const Text('Try again'),
-                    ),
-                  ],
-                ),
-              );
-            }
+    return SafeArea(
+      child: Column(
+        children: [
+          _WalletsHeader(onAddWallet: _openWalletCreation),
+          Expanded(
+            child: StreamBuilder<List<Wallet>>(
+              stream: _wallets,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return _WalletsLoadFailure(onRetry: _reloadWallets);
+                }
 
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-            final wallets = snapshot.data!;
-            if (wallets.isEmpty) {
-              return const Center(child: Text('No Wallets yet.'));
-            }
+                final wallets = snapshot.data!;
+                if (wallets.isEmpty) {
+                  return const Center(child: Text('No Wallets yet.'));
+                }
 
-            return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
-              itemCount: wallets.length,
-              itemBuilder: (context, index) =>
-                  _WalletListItem(wallet: wallets[index]),
-              separatorBuilder: (_, _) => const Divider(height: 1),
-            );
-          },
-        ),
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: FloatingActionButton.extended(
-            onPressed: _openWalletCreation,
-            icon: const Icon(Icons.add),
-            label: const Text('Add Wallet'),
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                  itemCount: wallets.length,
+                  itemBuilder: (context, index) {
+                    final wallet = wallets[index];
+                    return Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 720),
+                        child: WalletCard(
+                          key: ValueKey('wallet-card-${wallet.id}'),
+                          wallet: wallet,
+                        ),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -105,16 +101,72 @@ class _WalletsPageState extends State<WalletsPage> {
   }
 }
 
-class _WalletListItem extends StatelessWidget {
-  const _WalletListItem({required this.wallet});
+class _WalletsHeader extends StatelessWidget {
+  const _WalletsHeader({required this.onAddWallet});
 
-  final Wallet wallet;
+  final VoidCallback onAddWallet;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(wallet.name),
-      subtitle: Text(wallet.currencyCode),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Wallets',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton.icon(
+                key: const ValueKey('add-wallet-button'),
+                onPressed: onAddWallet,
+                icon: const Icon(Icons.add_circle, size: 22),
+                label: const Text('Add wallet'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: colorScheme.primary,
+                  minimumSize: const Size(0, 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  side: BorderSide(color: colorScheme.outlineVariant),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  textStyle: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WalletsLoadFailure extends StatelessWidget {
+  const _WalletsLoadFailure({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Could not load Wallets.'),
+          TextButton(onPressed: onRetry, child: const Text('Try again')),
+        ],
+      ),
     );
   }
 }
