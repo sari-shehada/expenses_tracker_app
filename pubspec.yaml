@@ -29,4 +29,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/data/currencies.json
+    - assets/images/sheets_empty_state.png
     - assets/images/wallet_creation_hero.png

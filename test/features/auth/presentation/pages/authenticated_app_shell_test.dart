@@ -11,8 +11,18 @@ void main() {
   testWidgets('shows Sheets as the default destination', (tester) async {
     await _pumpPage(tester);
 
-    expect(find.text('Sheets will appear here.'), findsOneWidget);
+    expect(find.text('No Sheets yet'), findsOneWidget);
+    expect(find.text('Add Sheet'), findsOneWidget);
     expect(find.text('No Wallets yet.'), findsNothing);
+  });
+
+  testWidgets('keeps Add Sheet as a placeholder action', (tester) async {
+    await _pumpPage(tester);
+
+    await tester.tap(find.text('Add Sheet'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No Sheets yet'), findsOneWidget);
   });
 
   testWidgets('opens Wallets from the bottom navigation', (tester) async {
@@ -22,7 +32,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('No Wallets yet.'), findsOneWidget);
-    expect(find.text('Sheets will appear here.'), findsNothing);
+    expect(find.text('No Sheets yet'), findsNothing);
   });
 }
 

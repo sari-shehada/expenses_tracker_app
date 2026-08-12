@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../currencies/domain/currency_catalog.dart';
+import '../../../sheets/presentation/pages/sheets_page.dart';
 import '../../../wallets/domain/wallet_repository.dart';
 import '../../../wallets/presentation/pages/wallets_page.dart';
 import '../../domain/auth_user.dart';
@@ -39,10 +40,7 @@ class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
         ],
       ),
       body: _selectedIndex == 0
-          ? const _FeaturePlaceholder(
-              title: 'Sheets',
-              message: 'Sheets will appear here.',
-            )
+          ? SheetsPage(onAddSheet: () {})
           : WalletsPage(
               userId: widget.user.id,
               repository: widget.walletRepository,
@@ -63,27 +61,6 @@ class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
             selectedIcon: Icon(Icons.account_balance_wallet),
             label: 'Wallets',
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FeaturePlaceholder extends StatelessWidget {
-  const _FeaturePlaceholder({required this.title, required this.message});
-
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 8),
-          Text(message),
         ],
       ),
     );
