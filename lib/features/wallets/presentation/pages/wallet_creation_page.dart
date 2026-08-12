@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import '../../../currencies/domain/currency.dart';
 import '../../../currencies/domain/currency_catalog.dart';
 import '../../../currencies/presentation/currency_picker_field.dart';
+import '../../domain/wallet_appearance.dart';
 import '../../domain/wallet_repository.dart';
+import '../wallet_color_palette.dart';
+import '../wallet_icon_catalog.dart';
+import 'wallet_color_selection_page.dart';
+import 'wallet_icon_selection_page.dart';
 
 class WalletCreationPage extends StatefulWidget {
   const WalletCreationPage({
@@ -25,6 +30,8 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   Currency? _currency;
+  String _colorKey = WalletAppearance.defaultColorKey;
+  String _iconKey = WalletAppearance.defaultIconKey;
   bool _isSaving = false;
   bool _currencyIsMissing = false;
   bool _saveFailed = false;
@@ -38,6 +45,8 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final selectedPalette = WalletColorPalette.resolve(_colorKey);
+    final selectedIcon = WalletIconOption.resolve(_iconKey);
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(24),
       borderSide: BorderSide(color: colorScheme.outlineVariant),
@@ -118,6 +127,46 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
                                 style: TextStyle(color: colorScheme.error),
                               ),
                             ],
+                            const SizedBox(height: 24),
+                            Text(
+                              'Appearance',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 12),
+                            _WalletAppearanceField(
+                              key: const ValueKey('wallet-color-field'),
+                              label: 'Color',
+                              value: selectedPalette.name,
+                              semanticsLabel:
+                                  'Wallet color, ${selectedPalette.name}',
+                              backgroundColor: selectedPalette.cardColor,
+                              borderColor: selectedPalette.borderColor,
+                              leading: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: selectedPalette.accentColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              onTap: _openColorSelection,
+                            ),
+                            const SizedBox(height: 12),
+                            _WalletAppearanceField(
+                              key: const ValueKey('wallet-icon-field'),
+                              label: 'Icon',
+                              value: selectedIcon.name,
+                              semanticsLabel:
+                                  'Wallet icon, ${selectedIcon.name}',
+                              backgroundColor: selectedPalette.cardColor,
+                              borderColor: selectedPalette.borderColor,
+                              leading: Icon(
+                                selectedIcon.icon,
+                                color: selectedPalette.accentColor,
+                              ),
+                              onTap: _openIconSelection,
+                            ),
                           ],
                         ),
                       ),
@@ -151,6 +200,46 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
     });
   }
 
+  Future<void> _openColorSelection() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final colorKey = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => WalletColorSelectionPage(
+          initialColorKey: _colorKey,
+          walletName: _walletPreviewName,
+        ),
+      ),
+    );
+
+    if (colorKey != null && mounted) {
+      setState(() => _colorKey = colorKey);
+    }
+  }
+
+  Future<void> _openIconSelection() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final iconKey = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => WalletIconSelectionPage(
+          initialIconKey: _iconKey,
+          colorKey: _colorKey,
+          walletName: _walletPreviewName,
+        ),
+      ),
+    );
+
+    if (iconKey != null && mounted) {
+      setState(() => _iconKey = iconKey);
+    }
+  }
+
+  String get _walletPreviewName {
+    final name = _nameController.text.trim();
+    return name.isEmpty ? 'Wallet' : name;
+  }
+
   Future<void> _createWallet() async {
     final nameIsValid = _formKey.currentState!.validate();
     final currencyIsSelected = _currency != null;
@@ -171,6 +260,8 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
         userId: widget.userId,
         name: _nameController.text,
         currencyCode: _currency!.code,
+        colorKey: _colorKey,
+        iconKey: _iconKey,
       );
       if (mounted) {
         Navigator.pop(context, true);
@@ -184,6 +275,84 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
         setState(() => _isSaving = false);
       }
     }
+  }
+}
+
+class _WalletAppearanceField extends StatelessWidget {
+  const _WalletAppearanceField({
+    required this.label,
+    required this.value,
+    required this.semanticsLabel,
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.leading,
+    required this.onTap,
+    super.key,
+  });
+
+  final String label;
+  final String value;
+  final String semanticsLabel;
+  final Color backgroundColor;
+  final Color borderColor;
+  final Widget leading;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Semantics(
+      button: true,
+      label: semanticsLabel,
+      excludeSemantics: true,
+      child: Material(
+        color: backgroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: borderColor),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 88),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Row(
+                children: [
+                  SizedBox.square(dimension: 40, child: Center(child: leading)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          value,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

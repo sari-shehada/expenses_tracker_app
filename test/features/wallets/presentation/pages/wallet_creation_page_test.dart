@@ -54,11 +54,48 @@ void main() {
     expect(border.borderRadius, BorderRadius.circular(24));
   });
 
-  testWidgets('creates a Wallet with the selected currency', (tester) async {
+  testWidgets('preselects the default Wallet appearance', (tester) async {
+    await _pumpPage(tester, repository: _FakeWalletRepository());
+
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('wallet-color-field')),
+        matching: find.text('Sage'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('wallet-icon-field')),
+        matching: find.text('Wallet'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('creates a Wallet with the selected currency and appearance', (
+    tester,
+  ) async {
     final repository = _FakeWalletRepository();
 
     await _pumpPage(tester, repository: repository);
     await tester.enterText(find.byType(TextFormField), 'Cash');
+
+    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('wallet-color-field')));
+    await tester.pumpAndSettle();
+    expect(find.text('Cash'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('wallet-color-teal')));
+    await tester.tap(find.byKey(const ValueKey('use-wallet-color-button')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('wallet-icon-field')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('wallet-icon-travel')));
+    await tester.tap(find.byKey(const ValueKey('use-wallet-icon-button')));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Select currency'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('USD')));
@@ -69,6 +106,8 @@ void main() {
     expect(repository.createdUserId, 'user-id');
     expect(repository.createdName, 'Cash');
     expect(repository.createdCurrencyCode, 'USD');
+    expect(repository.createdColorKey, 'teal');
+    expect(repository.createdIconKey, 'travel');
   });
 
   testWidgets('reports a save failure and lets the user retry', (tester) async {
@@ -230,6 +269,8 @@ class _FakeWalletRepository implements WalletRepository {
   String? createdUserId;
   String? createdName;
   String? createdCurrencyCode;
+  String? createdColorKey;
+  String? createdIconKey;
 
   @override
   Future<Wallet> createWallet({
@@ -243,6 +284,8 @@ class _FakeWalletRepository implements WalletRepository {
     createdUserId = userId;
     createdName = name;
     createdCurrencyCode = currencyCode;
+    createdColorKey = colorKey;
+    createdIconKey = iconKey;
 
     await saveCompleter?.future;
 
