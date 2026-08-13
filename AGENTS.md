@@ -1,5 +1,11 @@
 # Agent Guidance
 
+## Figma Workspace
+
+- Use the **Expenses Tracker App** Figma file as the default workspace for all product design and design implementation work.
+- File URL: https://www.figma.com/design/lQKEePxhJS0bmf84v6BJ2f/Expenses-Tracker-App
+- File key: `lQKEePxhJS0bmf84v6BJ2f`
+
 ## Development Workflow
 
 - Before finalizing a task, run the Dart formatter across every modified Dart file.
