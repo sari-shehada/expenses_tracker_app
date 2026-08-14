@@ -8,12 +8,16 @@ class CurrencySelector extends StatefulWidget {
     required this.currencies,
     required this.onSelected,
     this.selectedCode,
+    this.searchPadding = const EdgeInsets.fromLTRB(20, 4, 20, 12),
+    this.listPadding = const EdgeInsets.fromLTRB(20, 0, 20, 20),
     super.key,
   });
 
   final List<Currency> currencies;
   final String? selectedCode;
   final ValueChanged<Currency> onSelected;
+  final EdgeInsetsGeometry searchPadding;
+  final EdgeInsetsGeometry listPadding;
 
   @override
   State<CurrencySelector> createState() => _CurrencySelectorState();
@@ -29,13 +33,14 @@ class _CurrencySelectorState extends State<CurrencySelector> {
     return Column(
       children: [
         _CurrencySearchField(
+          padding: widget.searchPadding,
           onChanged: (value) => setState(() => _query = value),
         ),
         Expanded(
           child: currencies.isEmpty
               ? const _EmptySearchResults()
               : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  padding: widget.listPadding,
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   itemCount: currencies.length,
@@ -63,8 +68,9 @@ class _CurrencySelectorState extends State<CurrencySelector> {
 }
 
 class _CurrencySearchField extends StatelessWidget {
-  const _CurrencySearchField({required this.onChanged});
+  const _CurrencySearchField({required this.padding, required this.onChanged});
 
+  final EdgeInsetsGeometry padding;
   final ValueChanged<String> onChanged;
 
   @override
@@ -72,7 +78,7 @@ class _CurrencySearchField extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+      padding: padding,
       child: SizedBox(
         height: 50,
         child: Stack(
