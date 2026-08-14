@@ -12,6 +12,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   firebase_auth: ^6.1.3
   firebase_core: ^4.4.0
+  flutter_svg: ^2.3.0
   get_it: ^9.2.1
   cloud_firestore: ^6.8.0
   google_sign_in: ^7.2.0
@@ -29,5 +30,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/data/currencies.json
+    - assets/images/currency_flags/
     - assets/images/sheets_empty_state.png
     - assets/images/wallet_creation_hero.png
