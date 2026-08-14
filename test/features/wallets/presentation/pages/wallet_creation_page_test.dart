@@ -60,7 +60,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('wallet-color-field')),
-        matching: find.text('Sage'),
+        matching: find.text('Blue'),
       ),
       findsOneWidget,
     );

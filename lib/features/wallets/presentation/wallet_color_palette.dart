@@ -11,64 +11,64 @@ class WalletColorPalette {
     required this.accentColor,
   });
 
-  static const sage = WalletColorPalette(
+  static const blue = WalletColorPalette(
     key: WalletAppearance.defaultColorKey,
-    name: 'Sage',
-    cardColor: Color(0xFFEFF5EA),
-    borderColor: Color(0xFFCBDDBD),
-    accentColor: Color(0xFF2F6B3C),
+    name: 'Blue',
+    cardColor: Color(0xFFEFF6FF),
+    borderColor: Color(0xFFBFDBFE),
+    accentColor: Color(0xFF2563EB),
   );
 
   static const values = <WalletColorPalette>[
-    sage,
+    blue,
     WalletColorPalette(
-      key: 'sky',
-      name: 'Sky',
-      cardColor: Color(0xFFEBF3FC),
-      borderColor: Color(0xFFC6DAF1),
-      accentColor: Color(0xFF285F9E),
+      key: 'green',
+      name: 'Green',
+      cardColor: Color(0xFFECFDF5),
+      borderColor: Color(0xFFA7F3D0),
+      accentColor: Color(0xFF10B981),
     ),
     WalletColorPalette(
-      key: 'sand',
-      name: 'Sand',
-      cardColor: Color(0xFFFFF5DE),
-      borderColor: Color(0xFFF3D99B),
-      accentColor: Color(0xFF8A5A00),
+      key: 'red',
+      name: 'Red',
+      cardColor: Color(0xFFFEF2F2),
+      borderColor: Color(0xFFFECACA),
+      accentColor: Color(0xFFEF4444),
     ),
     WalletColorPalette(
-      key: 'lavender',
-      name: 'Lavender',
-      cardColor: Color(0xFFF4EFFB),
-      borderColor: Color(0xFFDCCEEF),
-      accentColor: Color(0xFF634A8E),
+      key: 'orange',
+      name: 'Orange',
+      cardColor: Color(0xFFFFF7ED),
+      borderColor: Color(0xFFFED7AA),
+      accentColor: Color(0xFFF97316),
     ),
     WalletColorPalette(
-      key: 'rose',
-      name: 'Rose',
-      cardColor: Color(0xFFFBEFF1),
-      borderColor: Color(0xFFEDCBD2),
-      accentColor: Color(0xFF934656),
+      key: 'purple',
+      name: 'Purple',
+      cardColor: Color(0xFFF5F3FF),
+      borderColor: Color(0xFFDDD6FE),
+      accentColor: Color(0xFF8B5CF6),
+    ),
+    WalletColorPalette(
+      key: 'pink',
+      name: 'Pink',
+      cardColor: Color(0xFFFDF2F8),
+      borderColor: Color(0xFFFBCFE8),
+      accentColor: Color(0xFFEC4899),
     ),
     WalletColorPalette(
       key: 'teal',
       name: 'Teal',
-      cardColor: Color(0xFFEAF6F3),
-      borderColor: Color(0xFFBFDCD5),
-      accentColor: Color(0xFF246B60),
+      cardColor: Color(0xFFF0FDFA),
+      borderColor: Color(0xFF99F6E4),
+      accentColor: Color(0xFF14B8A6),
     ),
     WalletColorPalette(
-      key: 'peach',
-      name: 'Peach',
-      cardColor: Color(0xFFFFF0E9),
-      borderColor: Color(0xFFF0CCBD),
-      accentColor: Color(0xFF934E31),
-    ),
-    WalletColorPalette(
-      key: 'slate',
-      name: 'Slate',
-      cardColor: Color(0xFFF0F2F5),
-      borderColor: Color(0xFFD4D8DE),
-      accentColor: Color(0xFF4B596C),
+      key: 'navy',
+      name: 'Navy',
+      cardColor: Color(0xFFF1F5F9),
+      borderColor: Color(0xFFCBD5E1),
+      accentColor: Color(0xFF1E293B),
     ),
   ];
 
@@ -85,6 +85,6 @@ class WalletColorPalette {
       }
     }
 
-    return sage;
+    return blue;
   }
 }

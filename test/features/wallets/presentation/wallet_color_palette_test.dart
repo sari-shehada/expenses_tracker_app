@@ -5,25 +5,46 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('provides the agreed Wallet color palettes', () {
     expect(WalletColorPalette.values.map((palette) => palette.key), [
-      'sage',
-      'sky',
-      'sand',
-      'lavender',
-      'rose',
+      'blue',
+      'green',
+      'red',
+      'orange',
+      'purple',
+      'pink',
       'teal',
-      'peach',
-      'slate',
+      'navy',
     ]);
-    expect(WalletColorPalette.sage.cardColor, const Color(0xFFEFF5EA));
-    expect(WalletColorPalette.sage.borderColor, const Color(0xFFCBDDBD));
-    expect(WalletColorPalette.sage.accentColor, const Color(0xFF2F6B3C));
+    expect(WalletColorPalette.values.map((palette) => palette.name), [
+      'Blue',
+      'Green',
+      'Red',
+      'Orange',
+      'Purple',
+      'Pink',
+      'Teal',
+      'Navy',
+    ]);
+    expect(
+      WalletColorPalette.values.map((palette) => palette.accentColor),
+      const [
+        Color(0xFF2563EB),
+        Color(0xFF10B981),
+        Color(0xFFEF4444),
+        Color(0xFFF97316),
+        Color(0xFF8B5CF6),
+        Color(0xFFEC4899),
+        Color(0xFF14B8A6),
+        Color(0xFF1E293B),
+      ],
+    );
+    expect(WalletColorPalette.blue.cardColor, const Color(0xFFEFF6FF));
+    expect(WalletColorPalette.blue.borderColor, const Color(0xFFBFDBFE));
+    expect(WalletColorPalette.blue.accentColor, const Color(0xFF2563EB));
   });
 
-  test('resolves a palette by its stable key', () {
-    expect(WalletColorPalette.resolve('sky').name, 'Sky');
-  });
-
-  test('falls back to Sage for an unknown key', () {
-    expect(WalletColorPalette.resolve('unknown'), WalletColorPalette.sage);
+  test('resolves supported keys and falls back legacy keys to Blue', () {
+    expect(WalletColorPalette.resolve('purple').name, 'Purple');
+    expect(WalletColorPalette.resolve('sage'), WalletColorPalette.blue);
+    expect(WalletColorPalette.resolve('unknown'), WalletColorPalette.blue);
   });
 }

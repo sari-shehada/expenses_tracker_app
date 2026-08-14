@@ -95,7 +95,7 @@ Future<void> _pumpPage(
       theme: AppTheme.light,
       home: WalletIconSelectionPage(
         initialIconKey: initialIconKey,
-        colorKey: 'sky',
+        colorKey: 'blue',
         walletName: 'Main card',
       ),
     ),

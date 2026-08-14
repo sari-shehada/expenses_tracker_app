@@ -9,7 +9,7 @@ void main() {
   testWidgets('shows every Wallet color and the initial selection', (
     tester,
   ) async {
-    await _pumpPage(tester, initialColorKey: 'sky');
+    await _pumpPage(tester, initialColorKey: 'purple');
 
     for (final palette in WalletColorPalette.values) {
       expect(
@@ -19,11 +19,11 @@ void main() {
     }
     expect(find.byIcon(Icons.check_circle), findsOneWidget);
 
-    final skySemantics = tester.getSemantics(
-      find.byKey(const ValueKey('wallet-color-sky')),
+    final purpleSemantics = tester.getSemantics(
+      find.byKey(const ValueKey('wallet-color-purple')),
     );
-    expect(skySemantics.label, 'Sky');
-    expect(skySemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(purpleSemantics.label, 'Purple');
+    expect(purpleSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
   });
 
   testWidgets('updates the live preview when a color is selected', (
@@ -31,30 +31,30 @@ void main() {
   ) async {
     await _pumpPage(tester);
 
-    await tester.tap(find.byKey(const ValueKey('wallet-color-rose')));
+    await tester.tap(find.byKey(const ValueKey('wallet-color-red')));
     await tester.pumpAndSettle();
 
     final preview = tester.widget<AnimatedContainer>(
       find.byKey(const ValueKey('wallet-color-preview')),
     );
     final decoration = preview.decoration! as BoxDecoration;
-    expect(decoration.color, WalletColorPalette.resolve('rose').cardColor);
+    expect(decoration.color, WalletColorPalette.resolve('red').cardColor);
 
-    final roseSemantics = tester.getSemantics(
-      find.byKey(const ValueKey('wallet-color-rose')),
+    final redSemantics = tester.getSemantics(
+      find.byKey(const ValueKey('wallet-color-red')),
     );
-    expect(roseSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(redSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
   });
 
-  testWidgets('falls back to Sage when the initial key is unknown', (
+  testWidgets('falls back to Blue when the initial key is unknown', (
     tester,
   ) async {
     await _pumpPage(tester, initialColorKey: 'unknown');
 
-    final sageSemantics = tester.getSemantics(
-      find.byKey(const ValueKey('wallet-color-sage')),
+    final blueSemantics = tester.getSemantics(
+      find.byKey(const ValueKey('wallet-color-blue')),
     );
-    expect(sageSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(blueSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
   });
 
   testWidgets('returns the selected stable color key', (tester) async {
@@ -66,11 +66,11 @@ void main() {
 
     await tester.tap(find.text('Choose color'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('wallet-color-teal')));
+    await tester.tap(find.byKey(const ValueKey('wallet-color-red')));
     await tester.tap(find.byKey(const ValueKey('use-wallet-color-button')));
     await tester.pumpAndSettle();
 
-    expect(selectedColorKey, 'teal');
+    expect(selectedColorKey, 'red');
   });
 
   testWidgets('meets tap-target and labeling accessibility guidelines', (
@@ -88,7 +88,7 @@ void main() {
   });
 }
 
-Future<void> _pumpPage(WidgetTester tester, {String initialColorKey = 'sage'}) {
+Future<void> _pumpPage(WidgetTester tester, {String initialColorKey = 'blue'}) {
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);

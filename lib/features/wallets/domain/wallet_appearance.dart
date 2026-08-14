@@ -1,4 +1,4 @@
 abstract final class WalletAppearance {
-  static const defaultColorKey = 'sage';
+  static const defaultColorKey = 'blue';
   static const defaultIconKey = 'wallet';
 }

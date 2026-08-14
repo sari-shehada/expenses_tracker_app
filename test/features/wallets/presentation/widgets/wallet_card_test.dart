@@ -15,7 +15,7 @@ void main() {
         id: 'travel-id',
         name: 'Travel card',
         currencyCode: 'USD',
-        colorKey: 'sand',
+        colorKey: 'orange',
         iconKey: 'travel',
       ),
     );
@@ -29,10 +29,10 @@ void main() {
       find.byKey(const ValueKey('wallet-card-surface-travel-id')),
     );
     final decoration = surface.decoration! as BoxDecoration;
-    expect(decoration.color, WalletColorPalette.resolve('sand').cardColor);
+    expect(decoration.color, WalletColorPalette.resolve('orange').cardColor);
     expect(
       (decoration.border! as Border).top.color,
-      WalletColorPalette.resolve('sand').borderColor,
+      WalletColorPalette.resolve('orange').borderColor,
     );
   });
 
@@ -43,7 +43,7 @@ void main() {
         id: 'legacy-id',
         name: 'Legacy Wallet',
         currencyCode: 'AED',
-        colorKey: 'unknown-color',
+        colorKey: 'sage',
         iconKey: 'unknown-icon',
       ),
     );
@@ -52,7 +52,7 @@ void main() {
       find.byKey(const ValueKey('wallet-card-surface-legacy-id')),
     );
     final decoration = surface.decoration! as BoxDecoration;
-    expect(decoration.color, WalletColorPalette.sage.cardColor);
+    expect(decoration.color, WalletColorPalette.blue.cardColor);
     expect(find.byIcon(Icons.account_balance_wallet_outlined), findsOneWidget);
   });
 
