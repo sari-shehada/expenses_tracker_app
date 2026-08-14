@@ -149,10 +149,12 @@ void main() {
       find.byKey(const ValueKey('create-wallet-button')),
     );
     final shape = button.style!.shape!.resolve({})! as RoundedRectangleBorder;
-    final minimumSize = button.style!.minimumSize!.resolve({})!;
 
-    expect(shape.borderRadius, BorderRadius.circular(24));
-    expect(minimumSize.height, 60);
+    expect(shape.borderRadius, BorderRadius.circular(16));
+    expect(
+      tester.getSize(find.byKey(const ValueKey('create-wallet-button'))).height,
+      48,
+    );
   });
 
   testWidgets('disables the action and reports progress while saving', (

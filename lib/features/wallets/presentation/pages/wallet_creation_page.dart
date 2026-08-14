@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/widgets/app_page_header.dart';
+import '../../../../app/widgets/app_primary_cta_button.dart';
 import '../../../currencies/domain/currency.dart';
 import '../../../currencies/domain/currency_catalog.dart';
 import '../../../currencies/presentation/currency_picker_field.dart';
@@ -414,48 +415,14 @@ class _WalletCreationFooter extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
               ],
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  key: const ValueKey('create-wallet-button'),
-                  onPressed: isSaving ? null : onCreate,
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(60),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    disabledBackgroundColor: colorScheme.primary,
-                    disabledForegroundColor: colorScheme.onPrimary,
-                    textStyle: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                  child: Semantics(
-                    liveRegion: isSaving,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 180),
-                      child: isSaving
-                          ? Row(
-                              key: const ValueKey('creating-wallet'),
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox.square(
-                                  dimension: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: colorScheme.onPrimary,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                const Text('Creating wallet'),
-                              ],
-                            )
-                          : const Text(
-                              'Create wallet',
-                              key: ValueKey('create-wallet'),
-                            ),
-                    ),
-                  ),
-                ),
+              AppPrimaryCtaButton(
+                label: 'Create wallet',
+                loadingLabel: 'Creating wallet',
+                isLoading: isSaving,
+                onPressed: onCreate,
+                buttonKey: const ValueKey('create-wallet-button'),
+                labelKey: const ValueKey('create-wallet'),
+                loadingKey: const ValueKey('creating-wallet'),
               ),
             ],
           ),
