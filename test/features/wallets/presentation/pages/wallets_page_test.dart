@@ -113,7 +113,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('add-wallet-button')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Add wallet'), findsOneWidget);
+    expect(find.text('Create Wallet'), findsOneWidget);
   });
 
   testWidgets('meets tap-target and labeling accessibility guidelines', (

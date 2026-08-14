@@ -14,7 +14,7 @@ void main() {
   testWidgets('shows the redesigned page foundation and hero', (tester) async {
     await _pumpPage(tester, repository: _FakeWalletRepository());
 
-    expect(find.text('Add wallet'), findsOneWidget);
+    expect(find.text('Create Wallet'), findsOneWidget);
     expect(
       find.text('Keep track of where your\nmoney comes from.'),
       findsOneWidget,

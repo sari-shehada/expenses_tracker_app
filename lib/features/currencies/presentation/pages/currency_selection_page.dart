@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_page_header.dart';
 import '../../domain/currency.dart';
 import '../currency_flag.dart';
 
@@ -28,7 +29,11 @@ class _CurrencySelectionPageState extends State<CurrencySelectionPage> {
       body: SafeArea(
         child: Column(
           children: [
-            const _CurrencySelectionHeader(),
+            AppPageHeader(
+              title: 'Select Currency',
+              backButtonKey: const ValueKey('currency-selection-back-button'),
+              onBack: () => Navigator.maybePop(context),
+            ),
             _CurrencySearchField(
               onChanged: (value) => setState(() => _query = value),
             ),
@@ -62,65 +67,6 @@ class _CurrencySelectionPageState extends State<CurrencySelectionPage> {
     return query.isEmpty ||
         currency.code.toLowerCase().contains(query) ||
         currency.name.toLowerCase().contains(query);
-  }
-}
-
-//Extract to a globally usable app bar widget, this will be used in other pages in the future
-class _CurrencySelectionHeader extends StatelessWidget {
-  const _CurrencySelectionHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return SizedBox(
-      height: 64,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: Row(
-          children: [
-            SizedBox.square(
-              dimension: 48,
-              child: IconButton(
-                key: const ValueKey('currency-selection-back-button'),
-                tooltip: 'Back',
-                padding: const EdgeInsets.all(4),
-                onPressed: () => Navigator.maybePop(context),
-                icon: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: colors.surfaceContainerLowest,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: colors.outlineVariant),
-                  ),
-                  child: SizedBox.square(
-                    dimension: 40,
-                    child: Icon(
-                      Icons.arrow_back_rounded,
-                      color: colors.onSurface,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Select Currency',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: colors.onSurface,
-                  fontSize: 22,
-                  height: 28 / 22,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

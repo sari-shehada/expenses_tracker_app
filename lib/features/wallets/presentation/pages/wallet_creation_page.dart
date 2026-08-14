@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_page_header.dart';
 import '../../../currencies/domain/currency.dart';
 import '../../../currencies/domain/currency_catalog.dart';
 import '../../../currencies/presentation/currency_picker_field.dart';
@@ -53,134 +54,147 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text(
-          'Add wallet',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-      ),
       body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+        child: Column(
+          children: [
+            AppPageHeader(
+              title: 'Create Wallet',
+              backButtonKey: const ValueKey('wallet-creation-back-button'),
+              onBack: () => Navigator.maybePop(context),
+            ),
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: Column(
                   children: [
-                    Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 560),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const _WalletCreationHero(),
-                            const SizedBox(height: 24),
-                            TextFormField(
-                              controller: _nameController,
-                              decoration: InputDecoration(
-                                labelText: 'Wallet name',
-                                filled: true,
-                                fillColor: Color.alphaBlend(
-                                  colorScheme.primaryContainer.withAlpha(48),
-                                  colorScheme.surface,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 22,
-                                ),
-                                border: inputBorder,
-                                enabledBorder: inputBorder,
-                                focusedBorder: inputBorder.copyWith(
-                                  borderSide: BorderSide(
-                                    color: colorScheme.primary,
-                                    width: 1.5,
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                        children: [
+                          Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 560),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const _WalletCreationHero(),
+                                  const SizedBox(height: 24),
+                                  TextFormField(
+                                    controller: _nameController,
+                                    decoration: InputDecoration(
+                                      labelText: 'Wallet name',
+                                      filled: true,
+                                      fillColor: Color.alphaBlend(
+                                        colorScheme.primaryContainer.withAlpha(
+                                          48,
+                                        ),
+                                        colorScheme.surface,
+                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                            vertical: 22,
+                                          ),
+                                      border: inputBorder,
+                                      enabledBorder: inputBorder,
+                                      focusedBorder: inputBorder.copyWith(
+                                        borderSide: BorderSide(
+                                          color: colorScheme.primary,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      errorBorder: inputBorder.copyWith(
+                                        borderSide: BorderSide(
+                                          color: colorScheme.error,
+                                        ),
+                                      ),
+                                      focusedErrorBorder: inputBorder.copyWith(
+                                        borderSide: BorderSide(
+                                          color: colorScheme.error,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                    ),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
+                                    textInputAction: TextInputAction.done,
+                                    validator: _validateName,
                                   ),
-                                ),
-                                errorBorder: inputBorder.copyWith(
-                                  borderSide: BorderSide(
-                                    color: colorScheme.error,
+                                  const SizedBox(height: 16),
+                                  CurrencyPickerField(
+                                    catalog: widget.currencyCatalog,
+                                    selectedCurrency: _currency,
+                                    onSelected: _selectCurrency,
                                   ),
-                                ),
-                                focusedErrorBorder: inputBorder.copyWith(
-                                  borderSide: BorderSide(
-                                    color: colorScheme.error,
-                                    width: 1.5,
+                                  if (_currencyIsMissing) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Select a currency.',
+                                      style: TextStyle(
+                                        color: colorScheme.error,
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 24),
+                                  Text(
+                                    'Appearance',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
-                                ),
+                                  const SizedBox(height: 12),
+                                  _WalletAppearanceField(
+                                    key: const ValueKey('wallet-color-field'),
+                                    label: 'Color',
+                                    value: selectedPalette.name,
+                                    semanticsLabel:
+                                        'Wallet color, ${selectedPalette.name}',
+                                    backgroundColor: selectedPalette.cardColor,
+                                    borderColor: selectedPalette.borderColor,
+                                    leading: Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: selectedPalette.accentColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    onTap: _openColorSelection,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _WalletAppearanceField(
+                                    key: const ValueKey('wallet-icon-field'),
+                                    label: 'Icon',
+                                    value: selectedIcon.name,
+                                    semanticsLabel:
+                                        'Wallet icon, ${selectedIcon.name}',
+                                    backgroundColor: selectedPalette.cardColor,
+                                    borderColor: selectedPalette.borderColor,
+                                    leading: Icon(
+                                      selectedIcon.icon,
+                                      color: selectedPalette.accentColor,
+                                    ),
+                                    onTap: _openIconSelection,
+                                  ),
+                                ],
                               ),
-                              style: Theme.of(context).textTheme.titleMedium,
-                              textInputAction: TextInputAction.done,
-                              validator: _validateName,
                             ),
-                            const SizedBox(height: 16),
-                            CurrencyPickerField(
-                              catalog: widget.currencyCatalog,
-                              selectedCurrency: _currency,
-                              onSelected: _selectCurrency,
-                            ),
-                            if (_currencyIsMissing) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                'Select a currency.',
-                                style: TextStyle(color: colorScheme.error),
-                              ),
-                            ],
-                            const SizedBox(height: 24),
-                            Text(
-                              'Appearance',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 12),
-                            _WalletAppearanceField(
-                              key: const ValueKey('wallet-color-field'),
-                              label: 'Color',
-                              value: selectedPalette.name,
-                              semanticsLabel:
-                                  'Wallet color, ${selectedPalette.name}',
-                              backgroundColor: selectedPalette.cardColor,
-                              borderColor: selectedPalette.borderColor,
-                              leading: Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: selectedPalette.accentColor,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              onTap: _openColorSelection,
-                            ),
-                            const SizedBox(height: 12),
-                            _WalletAppearanceField(
-                              key: const ValueKey('wallet-icon-field'),
-                              label: 'Icon',
-                              value: selectedIcon.name,
-                              semanticsLabel:
-                                  'Wallet icon, ${selectedIcon.name}',
-                              backgroundColor: selectedPalette.cardColor,
-                              borderColor: selectedPalette.borderColor,
-                              leading: Icon(
-                                selectedIcon.icon,
-                                color: selectedPalette.accentColor,
-                              ),
-                              onTap: _openIconSelection,
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
+                    ),
+                    _WalletCreationFooter(
+                      isSaving: _isSaving,
+                      saveFailed: _saveFailed,
+                      onCreate: _createWallet,
                     ),
                   ],
                 ),
               ),
-              _WalletCreationFooter(
-                isSaving: _isSaving,
-                saveFailed: _saveFailed,
-                onCreate: _createWallet,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

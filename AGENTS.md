@@ -8,6 +8,9 @@
 
 ## Development Workflow
 
+- Treat refactoring and generalization as behavior- and value-preserving work. Keep existing layout values, dimensions, spacing, colors, typography, copy, defaults, validation, control flow, persistence behavior, and public APIs unchanged unless the user explicitly approves a change.
+- Do not include opportunistic visual, behavioral, or product changes inside a refactoring. If an improvement is identified, propose it separately with its rationale and expected impact, and wait for approval before implementing it.
+- Call out any unavoidable difference before making the change. Never make a value change silently during a refactoring.
 - Before finalizing a task, run the Dart formatter across every modified Dart file.
 - Prefer `async`/`await` over `.then(...)` wherever the same behavior can be expressed clearly. Use Future callbacks only when `async`/`await` is not appropriate.
 - Keep the documentation collection at the docs project synchronized with code changes. When implementation work establishes or changes durable technical behavior, update the relevant `Implementation` document in the same task, including lifecycle timing, data sources, persistence boundaries, caching, dependency ownership, and important control flow.
