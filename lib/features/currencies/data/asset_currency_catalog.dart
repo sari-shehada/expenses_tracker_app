@@ -31,15 +31,17 @@ class AssetCurrencyCatalog implements CurrencyCatalog {
   }
 
   @override
-  Future<List<Currency>> getAll() async {
-    await initialize();
-    return _currencies!;
+  List<Currency> get currencies {
+    final currencies = _currencies;
+    if (currencies == null) {
+      throw StateError('Currency catalog has not been initialized.');
+    }
+    return currencies;
   }
 
   @override
-  Future<Currency?> findByCode(String code) async {
+  Currency? findByCode(String code) {
     final normalizedCode = code.trim().toUpperCase();
-    final currencies = await getAll();
 
     for (final currency in currencies) {
       if (currency.code == normalizedCode) {

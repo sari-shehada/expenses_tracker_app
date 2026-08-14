@@ -27,7 +27,8 @@ void main() {
       '''),
     );
 
-    final currencies = await catalog.getAll();
+    await catalog.initialize();
+    final currencies = catalog.currencies;
 
     expect(currencies.map((currency) => currency.code), ['USD', 'AED']);
     expect(currencies.last.nativeSymbol, 'د.إ.‏');
@@ -40,8 +41,8 @@ void main() {
 
     await catalog.initialize();
     await catalog.initialize();
-    final firstResult = await catalog.getAll();
-    final secondResult = await catalog.getAll();
+    final firstResult = catalog.currencies;
+    final secondResult = catalog.currencies;
 
     expect(assetReader.loadCalls, 1);
     expect(secondResult, same(firstResult));
@@ -53,7 +54,8 @@ void main() {
       assetReader: _FakeCurrencyAssetReader(_singleCurrencyJson),
     );
 
-    final currency = await catalog.findByCode(' usd ');
+    await catalog.initialize();
+    final currency = catalog.findByCode(' usd ');
 
     expect(currency?.name, 'US Dollar');
   });
@@ -63,26 +65,41 @@ void main() {
       assetReader: _FakeCurrencyAssetReader(_singleCurrencyJson),
     );
 
-    expect(await catalog.findByCode('CAD'), isNull);
+    await catalog.initialize();
+
+    expect(catalog.findByCode('CAD'), isNull);
   });
 
-  test('rejects malformed catalog data', () {
+  test('rejects malformed catalog data', () async {
     final catalog = AssetCurrencyCatalog(
       assetReader: _FakeCurrencyAssetReader('{"USD": {"code": "CAD"}}'),
     );
 
-    expect(catalog.getAll(), throwsA(isA<CurrencyCatalogFormatException>()));
+    await expectLater(
+      catalog.initialize(),
+      throwsA(isA<CurrencyCatalogFormatException>()),
+    );
   });
 
   test('retries loading after an asset read failure', () async {
     final assetReader = _FailingThenWorkingAssetReader();
     final catalog = AssetCurrencyCatalog(assetReader: assetReader);
 
-    await expectLater(catalog.getAll(), throwsA(isA<StateError>()));
-    final currencies = await catalog.getAll();
+    await expectLater(catalog.initialize(), throwsA(isA<StateError>()));
+    await catalog.initialize();
+    final currencies = catalog.currencies;
 
     expect(assetReader.loadCalls, 2);
     expect(currencies.single.code, 'USD');
+  });
+
+  test('rejects synchronous reads before initialization', () {
+    final catalog = AssetCurrencyCatalog(
+      assetReader: _FakeCurrencyAssetReader(_singleCurrencyJson),
+    );
+
+    expect(() => catalog.currencies, throwsStateError);
+    expect(() => catalog.findByCode('USD'), throwsStateError);
   });
 }
 

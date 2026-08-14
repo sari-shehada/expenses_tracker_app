@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:expenses_tracker/features/currencies/domain/currency.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency_catalog.dart';
 import 'package:expenses_tracker/features/currencies/presentation/currency_picker_field.dart';
@@ -24,55 +22,23 @@ void main() {
     ),
   ];
 
-  testWidgets('shows loading while the catalog is loading', (tester) async {
-    final catalog = _ControllableCurrencyCatalog();
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CurrencyPickerField(catalog: catalog, onSelected: (_) {}),
-      ),
-    );
-
-    expect(find.text('Loading currencies'), findsOneWidget);
-
-    catalog.complete(currencies);
-    await tester.pump();
-  });
-
-  testWidgets('retries a failed catalog load', (tester) async {
-    final catalog = _FlakyCurrencyCatalog(shouldFail: true);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CurrencyPickerField(catalog: catalog, onSelected: (_) {}),
-      ),
-    );
-    await tester.pump();
-
-    expect(find.text('Could not load currencies.'), findsOneWidget);
-
-    catalog.shouldFail = false;
-    await tester.tap(find.text('Try again'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Select currency'), findsOneWidget);
-    expect(catalog.loadCalls, 2);
-  });
-
   testWidgets('opens the selector and reports a chosen currency', (
     tester,
   ) async {
     Currency? selectedCurrency;
+    final catalog = _FakeCurrencyCatalog();
 
     await tester.pumpWidget(
       MaterialApp(
         home: CurrencyPickerField(
-          catalog: _FlakyCurrencyCatalog(),
+          catalog: catalog,
           onSelected: (currency) => selectedCurrency = currency,
         ),
       ),
     );
-    await tester.pump();
+
+    expect(find.text('Loading currencies'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
 
     await tester.tap(find.text('Select currency'));
     await tester.pumpAndSettle();
@@ -80,6 +46,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(selectedCurrency?.code, 'AED');
+    expect(catalog.currencyReads, 1);
   });
 
   testWidgets('shows selected currency details in a rounded field', (
@@ -88,7 +55,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: CurrencyPickerField(
-          catalog: _FlakyCurrencyCatalog(),
+          catalog: _FakeCurrencyCatalog(),
           selectedCurrency: currencies[1],
           onSelected: (_) {},
         ),
@@ -110,24 +77,7 @@ void main() {
   });
 }
 
-class _ControllableCurrencyCatalog implements CurrencyCatalog {
-  final _currencies = Completer<List<Currency>>();
-
-  void complete(List<Currency> currencies) => _currencies.complete(currencies);
-
-  @override
-  Future<void> initialize() async {}
-
-  @override
-  Future<Currency?> findByCode(String code) async => null;
-
-  @override
-  Future<List<Currency>> getAll() => _currencies.future;
-}
-
-class _FlakyCurrencyCatalog implements CurrencyCatalog {
-  _FlakyCurrencyCatalog({this.shouldFail = false});
-
+class _FakeCurrencyCatalog implements CurrencyCatalog {
   static const _availableCurrencies = [
     Currency(
       code: 'AED',
@@ -145,21 +95,17 @@ class _FlakyCurrencyCatalog implements CurrencyCatalog {
     ),
   ];
 
-  bool shouldFail;
-  int loadCalls = 0;
+  int currencyReads = 0;
 
   @override
   Future<void> initialize() async {}
 
   @override
-  Future<Currency?> findByCode(String code) async => null;
+  Currency? findByCode(String code) => null;
 
   @override
-  Future<List<Currency>> getAll() async {
-    loadCalls++;
-    if (shouldFail) {
-      throw StateError('Catalog unavailable');
-    }
+  List<Currency> get currencies {
+    currencyReads++;
     return _availableCurrencies;
   }
 }

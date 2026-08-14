@@ -4,11 +4,8 @@ import '../domain/currency.dart';
 import '../domain/currency_catalog.dart';
 import 'pages/currency_selection_page.dart';
 
-/// Lets a caller select a Currency from a [CurrencyCatalog].
-///
-/// It loads the catalog, gives the user a way to retry a failed load, and
-/// reports the selected Currency through [onSelected].
-class CurrencyPickerField extends StatefulWidget {
+/// Lets a caller select a Currency from an initialized [CurrencyCatalog].
+class CurrencyPickerField extends StatelessWidget {
   const CurrencyPickerField({
     required this.catalog,
     required this.onSelected,
@@ -19,19 +16,6 @@ class CurrencyPickerField extends StatefulWidget {
   final CurrencyCatalog catalog;
   final ValueChanged<Currency> onSelected;
   final Currency? selectedCurrency;
-
-  @override
-  State<CurrencyPickerField> createState() => _CurrencyPickerFieldState();
-}
-
-class _CurrencyPickerFieldState extends State<CurrencyPickerField> {
-  late Future<List<Currency>> _currencies;
-
-  @override
-  void initState() {
-    super.initState();
-    _currencies = widget.catalog.getAll();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,77 +31,30 @@ class _CurrencyPickerFieldState extends State<CurrencyPickerField> {
           ),
         ),
         const SizedBox(height: 8),
-        FutureBuilder<List<Currency>>(
-          future: _currencies,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return _CurrencyFieldSurface(
-                borderColor: Theme.of(context).colorScheme.error,
-                child: Row(
-                  children: [
-                    const Expanded(child: Text('Could not load currencies.')),
-                    TextButton(
-                      onPressed: _loadCurrencies,
-                      child: const Text('Try again'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            if (!snapshot.hasData) {
-              return const _CurrencyFieldSurface(
-                child: Row(
-                  children: [
-                    SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(child: Text('Loading currencies')),
-                  ],
-                ),
-              );
-            }
-
-            return _CurrencyFieldSurface(
-              onTap: () => _selectCurrency(context, snapshot.data!),
-              semanticsLabel: widget.selectedCurrency == null
-                  ? 'Select currency'
-                  : 'Currency: ${widget.selectedCurrency!.code}, ${widget.selectedCurrency!.name}',
-              child: _CurrencyFieldContent(
-                selectedCurrency: widget.selectedCurrency,
-              ),
-            );
-          },
+        _CurrencyFieldSurface(
+          onTap: () => _selectCurrency(context),
+          semanticsLabel: selectedCurrency == null
+              ? 'Select currency'
+              : 'Currency: ${selectedCurrency!.code}, ${selectedCurrency!.name}',
+          child: _CurrencyFieldContent(selectedCurrency: selectedCurrency),
         ),
       ],
     );
   }
 
-  void _loadCurrencies() {
-    final currencies = widget.catalog.getAll();
-    setState(() {
-      _currencies = currencies;
-    });
-  }
-
-  Future<void> _selectCurrency(
-    BuildContext context,
-    List<Currency> currencies,
-  ) async {
+  Future<void> _selectCurrency(BuildContext context) async {
     final currency = await Navigator.push<Currency>(
       context,
       MaterialPageRoute(
         builder: (_) => CurrencySelectionPage(
-          currencies: currencies,
-          selectedCode: widget.selectedCurrency?.code,
+          currencies: catalog.currencies,
+          selectedCode: selectedCurrency?.code,
         ),
       ),
     );
 
-    if (currency != null && mounted) {
-      widget.onSelected(currency);
+    if (currency != null && context.mounted) {
+      onSelected(currency);
     }
   }
 }
@@ -125,15 +62,13 @@ class _CurrencyPickerFieldState extends State<CurrencyPickerField> {
 class _CurrencyFieldSurface extends StatelessWidget {
   const _CurrencyFieldSurface({
     required this.child,
-    this.onTap,
-    this.borderColor,
-    this.semanticsLabel,
+    required this.onTap,
+    required this.semanticsLabel,
   });
 
   final Widget child;
-  final VoidCallback? onTap;
-  final Color? borderColor;
-  final String? semanticsLabel;
+  final VoidCallback onTap;
+  final String semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +83,7 @@ class _CurrencyFieldSurface extends StatelessWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: borderRadius,
-        side: BorderSide(color: borderColor ?? colorScheme.outlineVariant),
+        side: BorderSide(color: colorScheme.outlineVariant),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -163,10 +98,6 @@ class _CurrencyFieldSurface extends StatelessWidget {
         ),
       ),
     );
-
-    if (onTap == null) {
-      return field;
-    }
 
     return Semantics(
       button: true,

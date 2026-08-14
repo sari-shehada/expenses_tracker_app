@@ -39,8 +39,8 @@ class _FakeCurrencyCatalog implements CurrencyCatalog {
   }
 
   @override
-  Future<List<Currency>> getAll() async => const [];
+  List<Currency> get currencies => const [];
 
   @override
-  Future<Currency?> findByCode(String code) async => null;
+  Currency? findByCode(String code) => null;
 }

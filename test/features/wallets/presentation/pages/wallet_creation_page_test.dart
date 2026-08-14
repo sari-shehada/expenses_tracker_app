@@ -249,10 +249,10 @@ class _FakeCurrencyCatalog implements CurrencyCatalog {
   Future<void> initialize() async {}
 
   @override
-  Future<Currency?> findByCode(String code) async => null;
+  Currency? findByCode(String code) => null;
 
   @override
-  Future<List<Currency>> getAll() async => [
+  List<Currency> get currencies => [
     const Currency(
       code: 'USD',
       name: 'US Dollar',
