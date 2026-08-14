@@ -13,6 +13,7 @@ class WalletCreationFlowScaffold extends StatelessWidget {
     required this.onCtaPressed,
     this.isCtaLoading = false,
     this.ctaLoadingLabel = 'Loading',
+    this.ctaMessage,
     this.backButtonKey,
     this.ctaButtonKey,
     super.key,
@@ -25,6 +26,7 @@ class WalletCreationFlowScaffold extends StatelessWidget {
   final VoidCallback? onCtaPressed;
   final bool isCtaLoading;
   final String ctaLoadingLabel;
+  final Widget? ctaMessage;
   final Key? backButtonKey;
   final Key? ctaButtonKey;
 
@@ -46,12 +48,21 @@ class WalletCreationFlowScaffold extends StatelessWidget {
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 560),
-                  child: AppPrimaryCtaButton(
-                    label: ctaLabel,
-                    loadingLabel: ctaLoadingLabel,
-                    isLoading: isCtaLoading,
-                    onPressed: onCtaPressed,
-                    buttonKey: ctaButtonKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (ctaMessage != null) ...[
+                        ctaMessage!,
+                        const SizedBox(height: 8),
+                      ],
+                      AppPrimaryCtaButton(
+                        label: ctaLabel,
+                        loadingLabel: ctaLoadingLabel,
+                        isLoading: isCtaLoading,
+                        onPressed: onCtaPressed,
+                        buttonKey: ctaButtonKey,
+                      ),
+                    ],
                   ),
                 ),
               ),

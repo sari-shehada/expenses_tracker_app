@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/widgets/app_page_header.dart';
-import '../../../../app/widgets/app_primary_cta_button.dart';
 import '../../../currencies/domain/currency.dart';
 import '../../../currencies/domain/currency_catalog.dart';
-import '../../../currencies/presentation/currency_picker_field.dart';
 import '../../domain/wallet_appearance.dart';
 import '../../domain/wallet_repository.dart';
-import '../wallet_color_palette.dart';
-import '../wallet_icon_catalog.dart';
-import 'wallet_color_selection_page.dart';
-import 'wallet_icon_selection_page.dart';
+import '../widgets/wallet_appearance_step.dart';
+import '../widgets/wallet_currency_step.dart';
+import '../widgets/wallet_name_step.dart';
 
 class WalletCreationPage extends StatefulWidget {
   const WalletCreationPage({
@@ -29,13 +25,13 @@ class WalletCreationPage extends StatefulWidget {
 }
 
 class _WalletCreationPageState extends State<WalletCreationPage> {
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  int _step = 1;
   Currency? _currency;
   String _colorKey = WalletAppearance.defaultColorKey;
   String _iconKey = WalletAppearance.defaultIconKey;
+  String? _nameError;
   bool _isSaving = false;
-  bool _currencyIsMissing = false;
   bool _saveFailed = false;
 
   @override
@@ -46,229 +42,96 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final selectedPalette = WalletColorPalette.resolve(_colorKey);
-    final selectedIcon = WalletIconOption.resolve(_iconKey);
-    final inputBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(24),
-      borderSide: BorderSide(color: colorScheme.outlineVariant),
-    );
-
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            AppPageHeader(
-              title: 'Create Wallet',
-              backButtonKey: const ValueKey('wallet-creation-back-button'),
-              onBack: () => Navigator.maybePop(context),
-            ),
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                        children: [
-                          Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 560),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  const _WalletCreationHero(),
-                                  const SizedBox(height: 24),
-                                  TextFormField(
-                                    controller: _nameController,
-                                    decoration: InputDecoration(
-                                      labelText: 'Wallet name',
-                                      filled: true,
-                                      fillColor: Color.alphaBlend(
-                                        colorScheme.primaryContainer.withAlpha(
-                                          48,
-                                        ),
-                                        colorScheme.surface,
-                                      ),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 24,
-                                            vertical: 22,
-                                          ),
-                                      border: inputBorder,
-                                      enabledBorder: inputBorder,
-                                      focusedBorder: inputBorder.copyWith(
-                                        borderSide: BorderSide(
-                                          color: colorScheme.primary,
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      errorBorder: inputBorder.copyWith(
-                                        borderSide: BorderSide(
-                                          color: colorScheme.error,
-                                        ),
-                                      ),
-                                      focusedErrorBorder: inputBorder.copyWith(
-                                        borderSide: BorderSide(
-                                          color: colorScheme.error,
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                    ),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium,
-                                    textInputAction: TextInputAction.done,
-                                    validator: _validateName,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  CurrencyPickerField(
-                                    catalog: widget.currencyCatalog,
-                                    selectedCurrency: _currency,
-                                    onSelected: _selectCurrency,
-                                  ),
-                                  if (_currencyIsMissing) ...[
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Select a currency.',
-                                      style: TextStyle(
-                                        color: colorScheme.error,
-                                      ),
-                                    ),
-                                  ],
-                                  const SizedBox(height: 24),
-                                  Text(
-                                    'Appearance',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.w700),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _WalletAppearanceField(
-                                    key: const ValueKey('wallet-color-field'),
-                                    label: 'Color',
-                                    value: selectedPalette.name,
-                                    semanticsLabel:
-                                        'Wallet color, ${selectedPalette.name}',
-                                    backgroundColor: selectedPalette.cardColor,
-                                    borderColor: selectedPalette.borderColor,
-                                    leading: Container(
-                                      width: 32,
-                                      height: 32,
-                                      decoration: BoxDecoration(
-                                        color: selectedPalette.accentColor,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    onTap: _openColorSelection,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _WalletAppearanceField(
-                                    key: const ValueKey('wallet-icon-field'),
-                                    label: 'Icon',
-                                    value: selectedIcon.name,
-                                    semanticsLabel:
-                                        'Wallet icon, ${selectedIcon.name}',
-                                    backgroundColor: selectedPalette.cardColor,
-                                    borderColor: selectedPalette.borderColor,
-                                    leading: Icon(
-                                      selectedIcon.icon,
-                                      color: selectedPalette.accentColor,
-                                    ),
-                                    onTap: _openIconSelection,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _WalletCreationFooter(
-                      isSaving: _isSaving,
-                      saveFailed: _saveFailed,
-                      onCreate: _createWallet,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+    return PopScope<bool>(
+      canPop: _step == 1,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          _showStep(_step - 1);
+        }
+      },
+      child: switch (_step) {
+        1 => WalletNameStep(
+          controller: _nameController,
+          errorText: _nameError,
+          onChanged: _handleNameChanged,
+          onBack: () => Navigator.maybePop(context),
+          onContinue: _continueFromName,
+          backButtonKey: const ValueKey('wallet-creation-back-button'),
+          ctaButtonKey: const ValueKey('wallet-name-continue-button'),
         ),
-      ),
-    );
-  }
-
-  String? _validateName(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Enter a Wallet name.';
-    }
-    return null;
-  }
-
-  void _selectCurrency(Currency currency) {
-    setState(() {
-      _currency = currency;
-      _currencyIsMissing = false;
-    });
-  }
-
-  Future<void> _openColorSelection() async {
-    FocusManager.instance.primaryFocus?.unfocus();
-    final colorKey = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => WalletColorSelectionPage(
-          initialColorKey: _colorKey,
-          walletName: _walletPreviewName,
+        2 => WalletCurrencyStep(
+          currencies: widget.currencyCatalog.currencies,
+          selectedCode: _currency?.code,
+          onSelected: (currency) => setState(() => _currency = currency),
+          onBack: () => _showStep(1),
+          onContinue: () => _showStep(3),
+          backButtonKey: const ValueKey('wallet-creation-back-button'),
+          ctaButtonKey: const ValueKey('wallet-currency-continue-button'),
         ),
-      ),
+        3 => WalletAppearanceStep(
+          selectedColorKey: _colorKey,
+          selectedIconKey: _iconKey,
+          onColorSelected: (key) => setState(() => _colorKey = key),
+          onIconSelected: (key) => setState(() => _iconKey = key),
+          onBack: () => _showStep(2),
+          onCreate: _createWallet,
+          isCreating: _isSaving,
+          saveFailed: _saveFailed,
+          onRetry: _createWallet,
+          backButtonKey: const ValueKey('wallet-creation-back-button'),
+          ctaButtonKey: const ValueKey('create-wallet-button'),
+        ),
+        _ => throw StateError('Unsupported Wallet creation step: $_step'),
+      },
     );
+  }
 
-    if (colorKey != null && mounted) {
-      setState(() => _colorKey = colorKey);
+  void _handleNameChanged(String value) {
+    if (_nameError != null && value.trim().isNotEmpty) {
+      setState(() => _nameError = null);
     }
   }
 
-  Future<void> _openIconSelection() async {
-    FocusManager.instance.primaryFocus?.unfocus();
-    final iconKey = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => WalletIconSelectionPage(
-          initialIconKey: _iconKey,
-          colorKey: _colorKey,
-          walletName: _walletPreviewName,
-        ),
-      ),
-    );
-
-    if (iconKey != null && mounted) {
-      setState(() => _iconKey = iconKey);
-    }
-  }
-
-  String get _walletPreviewName {
-    final name = _nameController.text.trim();
-    return name.isEmpty ? 'Wallet' : name;
-  }
-
-  Future<void> _createWallet() async {
-    final nameIsValid = _formKey.currentState!.validate();
-    final currencyIsSelected = _currency != null;
-
-    setState(() {
-      _currencyIsMissing = !currencyIsSelected;
-      _saveFailed = false;
-    });
-
-    if (!nameIsValid || !currencyIsSelected) {
+  void _continueFromName() {
+    if (_nameController.text.trim().isEmpty) {
+      setState(() => _nameError = 'Enter a Wallet name.');
       return;
     }
 
-    setState(() => _isSaving = true);
+    setState(() {
+      _nameError = null;
+      _step = 2;
+    });
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  void _showStep(int step) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _step = step);
+  }
+
+  Future<void> _createWallet() async {
+    if (_isSaving) {
+      return;
+    }
+
+    if (_nameController.text.trim().isEmpty) {
+      setState(() {
+        _nameError = 'Enter a Wallet name.';
+        _step = 1;
+      });
+      return;
+    }
+
+    if (_currency == null) {
+      setState(() => _step = 2);
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+      _saveFailed = false;
+    });
 
     try {
       await widget.repository.createWallet(
@@ -290,178 +153,5 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
         setState(() => _isSaving = false);
       }
     }
-  }
-}
-
-class _WalletAppearanceField extends StatelessWidget {
-  const _WalletAppearanceField({
-    required this.label,
-    required this.value,
-    required this.semanticsLabel,
-    required this.backgroundColor,
-    required this.borderColor,
-    required this.leading,
-    required this.onTap,
-    super.key,
-  });
-
-  final String label;
-  final String value;
-  final String semanticsLabel;
-  final Color backgroundColor;
-  final Color borderColor;
-  final Widget leading;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Semantics(
-      button: true,
-      label: semanticsLabel,
-      excludeSemantics: true,
-      child: Material(
-        color: backgroundColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: borderColor),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 88),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                children: [
-                  SizedBox.square(dimension: 40, child: Center(child: leading)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          label,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          value,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.chevron_right,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _WalletCreationFooter extends StatelessWidget {
-  const _WalletCreationFooter({
-    required this.isSaving,
-    required this.saveFailed,
-    required this.onCreate,
-  });
-
-  final bool isSaving;
-  final bool saveFailed;
-  final VoidCallback onCreate;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      key: const ValueKey('wallet-creation-footer'),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (saveFailed) ...[
-                Semantics(
-                  liveRegion: true,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        color: colorScheme.error,
-                      ),
-                      const SizedBox(width: 8),
-                      const Expanded(child: Text('Could not save Wallet.')),
-                      TextButton(
-                        onPressed: isSaving ? null : onCreate,
-                        child: const Text('Try again'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-              AppPrimaryCtaButton(
-                label: 'Create wallet',
-                loadingLabel: 'Creating wallet',
-                isLoading: isSaving,
-                onPressed: onCreate,
-                buttonKey: const ValueKey('create-wallet-button'),
-                labelKey: const ValueKey('create-wallet'),
-                loadingKey: const ValueKey('creating-wallet'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _WalletCreationHero extends StatelessWidget {
-  const _WalletCreationHero();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 320),
-          child: const AspectRatio(
-            aspectRatio: 1.35,
-            child: Image(
-              key: ValueKey('wallet-creation-hero'),
-              image: AssetImage('assets/images/wallet_creation_hero.png'),
-              fit: BoxFit.cover,
-              excludeFromSemantics: true,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Keep track of where your\nmoney comes from.',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: FontWeight.w700,
-            height: 1.35,
-          ),
-        ),
-      ],
-    );
   }
 }

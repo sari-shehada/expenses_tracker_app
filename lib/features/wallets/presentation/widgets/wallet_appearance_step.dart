@@ -14,10 +14,12 @@ class WalletAppearanceStep extends StatelessWidget {
     this.selectedColorKey = WalletAppearance.defaultColorKey,
     this.selectedIconKey = WalletAppearance.defaultIconKey,
     this.isCreating = false,
+    this.saveFailed = false,
+    this.onRetry,
     this.backButtonKey,
     this.ctaButtonKey,
     super.key,
-  });
+  }) : assert(!saveFailed || onRetry != null);
 
   final String selectedColorKey;
   final String selectedIconKey;
@@ -26,6 +28,8 @@ class WalletAppearanceStep extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onCreate;
   final bool isCreating;
+  final bool saveFailed;
+  final VoidCallback? onRetry;
   final Key? backButtonKey;
   final Key? ctaButtonKey;
 
@@ -42,6 +46,9 @@ class WalletAppearanceStep extends StatelessWidget {
       ctaLoadingLabel: 'Creating wallet',
       isCtaLoading: isCreating,
       onCtaPressed: onCreate,
+      ctaMessage: saveFailed
+          ? _WalletSaveFailure(isCreating: isCreating, onRetry: onRetry!)
+          : null,
       backButtonKey: backButtonKey,
       ctaButtonKey: ctaButtonKey,
       body: SingleChildScrollView(
@@ -93,6 +100,33 @@ class WalletAppearanceStep extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _WalletSaveFailure extends StatelessWidget {
+  const _WalletSaveFailure({required this.isCreating, required this.onRetry});
+
+  final bool isCreating;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Semantics(
+      liveRegion: true,
+      child: Row(
+        children: [
+          Icon(Icons.error_outline_rounded, color: colors.error),
+          const SizedBox(width: 8),
+          const Expanded(child: Text('Could not save Wallet.')),
+          TextButton(
+            onPressed: isCreating ? null : onRetry,
+            child: const Text('Try again'),
+          ),
+        ],
       ),
     );
   }
