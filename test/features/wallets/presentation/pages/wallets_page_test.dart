@@ -190,6 +190,9 @@ class _FakeWalletRepository implements WalletRepository {
 
 class _FakeCurrencyCatalog implements CurrencyCatalog {
   @override
+  Future<void> initialize() async {}
+
+  @override
   Future<Currency?> findByCode(String code) async => null;
 
   @override

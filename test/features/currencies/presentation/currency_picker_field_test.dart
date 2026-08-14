@@ -116,6 +116,9 @@ class _ControllableCurrencyCatalog implements CurrencyCatalog {
   void complete(List<Currency> currencies) => _currencies.complete(currencies);
 
   @override
+  Future<void> initialize() async {}
+
+  @override
   Future<Currency?> findByCode(String code) async => null;
 
   @override
@@ -144,6 +147,9 @@ class _FlakyCurrencyCatalog implements CurrencyCatalog {
 
   bool shouldFail;
   int loadCalls = 0;
+
+  @override
+  Future<void> initialize() async {}
 
   @override
   Future<Currency?> findByCode(String code) async => null;

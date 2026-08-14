@@ -34,6 +34,20 @@ void main() {
     expect(currencies.first.decimalDigits, 2);
   });
 
+  test('initializes once and serves the cached immutable list', () async {
+    final assetReader = _CountingCurrencyAssetReader(_singleCurrencyJson);
+    final catalog = AssetCurrencyCatalog(assetReader: assetReader);
+
+    await catalog.initialize();
+    await catalog.initialize();
+    final firstResult = await catalog.getAll();
+    final secondResult = await catalog.getAll();
+
+    expect(assetReader.loadCalls, 1);
+    expect(secondResult, same(firstResult));
+    expect(() => firstResult.add(firstResult.single), throwsUnsupportedError);
+  });
+
   test('finds a currency using a normalized code', () async {
     final catalog = AssetCurrencyCatalog(
       assetReader: _FakeCurrencyAssetReader(_singleCurrencyJson),
@@ -91,6 +105,19 @@ class _FakeCurrencyAssetReader implements CurrencyAssetReader {
 
   @override
   Future<String> loadString(String assetPath) async => contents;
+}
+
+class _CountingCurrencyAssetReader implements CurrencyAssetReader {
+  _CountingCurrencyAssetReader(this.contents);
+
+  final String contents;
+  int loadCalls = 0;
+
+  @override
+  Future<String> loadString(String assetPath) async {
+    loadCalls++;
+    return contents;
+  }
 }
 
 class _FailingThenWorkingAssetReader implements CurrencyAssetReader {

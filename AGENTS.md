@@ -9,6 +9,7 @@
 ## Development Workflow
 
 - Before finalizing a task, run the Dart formatter across every modified Dart file.
+- Prefer `async`/`await` over `.then(...)` wherever the same behavior can be expressed clearly. Use Future callbacks only when `async`/`await` is not appropriate.
 - Keep the documentation collection at the docs project synchronized with code changes. When implementation work establishes or changes durable technical behavior, update the relevant `Implementation` document in the same task, including lifecycle timing, data sources, persistence boundaries, caching, dependency ownership, and important control flow.
 - Document only behavior verified in the code or explicitly agreed with the user. Distinguish current behavior from an agreed but not-yet-implemented target design, and omit incidental structure that is easy to rediscover.
 - When practical, structure changes as small, cohesive, commit-friendly units. Keep each unit focused on one responsibility and include its related tests so the development history remains easy for humans to understand and track.

@@ -10,26 +10,30 @@ class AssetCurrencyCatalog implements CurrencyCatalog {
   static const assetPath = 'assets/data/currencies.json';
 
   final CurrencyAssetReader assetReader;
-  Future<List<Currency>>? _currencies;
+  List<Currency>? _currencies;
+  Future<List<Currency>>? _loading;
 
   @override
-  Future<List<Currency>> getAll() {
-    final cachedCurrencies = _currencies;
-    if (cachedCurrencies != null) {
-      return cachedCurrencies;
+  Future<void> initialize() async {
+    if (_currencies != null) {
+      return;
     }
 
-    final currencies = _loadCurrencies();
-    _currencies = currencies;
-    currencies.then<void>(
-      (_) {},
-      onError: (Object _, StackTrace _) {
-        if (identical(_currencies, currencies)) {
-          _currencies = null;
-        }
-      },
-    );
-    return currencies;
+    final loading = _loading ??= _loadCurrencies();
+
+    try {
+      _currencies = await loading;
+    } finally {
+      if (identical(_loading, loading)) {
+        _loading = null;
+      }
+    }
+  }
+
+  @override
+  Future<List<Currency>> getAll() async {
+    await initialize();
+    return _currencies!;
   }
 
   @override
