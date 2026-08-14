@@ -1,8 +1,9 @@
+import 'dart:ui' as ui;
+
 import 'package:expenses_tracker/app/app_theme.dart';
 import 'package:expenses_tracker/features/wallets/presentation/pages/wallet_icon_selection_page.dart';
 import 'package:expenses_tracker/features/wallets/presentation/wallet_icon_catalog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -20,7 +21,7 @@ void main() {
       find.byKey(const ValueKey('wallet-icon-card')),
     );
     expect(cardSemantics.label, 'Card');
-    expect(cardSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(cardSemantics.flagsCollection.isSelected, ui.Tristate.isTrue);
   });
 
   testWidgets('updates the live preview when an icon is selected', (
@@ -39,7 +40,7 @@ void main() {
     final personSemantics = tester.getSemantics(
       find.byKey(const ValueKey('wallet-icon-person')),
     );
-    expect(personSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(personSemantics.flagsCollection.isSelected, ui.Tristate.isTrue);
   });
 
   testWidgets('falls back to Wallet when the initial key is unknown', (
@@ -50,7 +51,7 @@ void main() {
     final walletSemantics = tester.getSemantics(
       find.byKey(const ValueKey('wallet-icon-wallet')),
     );
-    expect(walletSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(walletSemantics.flagsCollection.isSelected, ui.Tristate.isTrue);
   });
 
   testWidgets('returns the selected stable icon key', (tester) async {

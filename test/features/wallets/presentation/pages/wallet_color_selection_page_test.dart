@@ -1,8 +1,9 @@
+import 'dart:ui' as ui;
+
 import 'package:expenses_tracker/app/app_theme.dart';
 import 'package:expenses_tracker/features/wallets/presentation/pages/wallet_color_selection_page.dart';
 import 'package:expenses_tracker/features/wallets/presentation/wallet_color_palette.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -23,7 +24,7 @@ void main() {
       find.byKey(const ValueKey('wallet-color-purple')),
     );
     expect(purpleSemantics.label, 'Purple');
-    expect(purpleSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(purpleSemantics.flagsCollection.isSelected, ui.Tristate.isTrue);
   });
 
   testWidgets('updates the live preview when a color is selected', (
@@ -43,7 +44,7 @@ void main() {
     final redSemantics = tester.getSemantics(
       find.byKey(const ValueKey('wallet-color-red')),
     );
-    expect(redSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(redSemantics.flagsCollection.isSelected, ui.Tristate.isTrue);
   });
 
   testWidgets('falls back to Blue when the initial key is unknown', (
@@ -54,7 +55,7 @@ void main() {
     final blueSemantics = tester.getSemantics(
       find.byKey(const ValueKey('wallet-color-blue')),
     );
-    expect(blueSemantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(blueSemantics.flagsCollection.isSelected, ui.Tristate.isTrue);
   });
 
   testWidgets('returns the selected stable color key', (tester) async {
