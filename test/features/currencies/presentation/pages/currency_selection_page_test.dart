@@ -34,6 +34,19 @@ void main() {
     expect(find.widgetWithText(TextField, 'Search currency'), findsOneWidget);
     expect(find.byType(CurrencyFlag), findsNWidgets(2));
 
+    expect(
+      tester.getTopLeft(find.byKey(const ValueKey('currency-search-field'))),
+      const Offset(20, 68),
+    );
+    expect(
+      tester.getSize(find.byKey(const ValueKey('currency-search-field'))),
+      const Size(350, 50),
+    );
+    expect(
+      tester.getTopLeft(find.byKey(const ValueKey('AED'))),
+      const Offset(20, 130),
+    );
+
     final aedTop = tester.getTopLeft(find.byKey(const ValueKey('AED'))).dy;
     final usdTop = tester.getTopLeft(find.byKey(const ValueKey('USD'))).dy;
     expect(aedTop, lessThan(usdTop));
