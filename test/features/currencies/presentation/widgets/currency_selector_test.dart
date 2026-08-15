@@ -80,12 +80,39 @@ void main() {
     final usdSemantics = tester.getSemantics(find.byKey(const ValueKey('USD')));
     expect(usdSemantics.flagsCollection.isSelected, ui.Tristate.isTrue);
   });
+
+  testWidgets('restores search and filtering from an external controller', (
+    tester,
+  ) async {
+    final controller = TextEditingController(text: 'dirham');
+    addTearDown(controller.dispose);
+
+    await _pumpSelector(
+      tester,
+      selectedCode: null,
+      searchController: controller,
+      onSelected: (_) {},
+    );
+
+    expect(find.byKey(const ValueKey('AED')), findsOneWidget);
+    expect(find.byKey(const ValueKey('USD')), findsNothing);
+    expect(
+      tester
+          .widget<TextField>(
+            find.byKey(const ValueKey('currency-search-field')),
+          )
+          .controller
+          ?.text,
+      'dirham',
+    );
+  });
 }
 
 Future<void> _pumpSelector(
   WidgetTester tester, {
   required String? selectedCode,
   required ValueChanged<Currency> onSelected,
+  TextEditingController? searchController,
 }) {
   tester.view.physicalSize = const Size(390, 780);
   tester.view.devicePixelRatio = 1;
@@ -99,6 +126,7 @@ Future<void> _pumpSelector(
         body: CurrencySelector(
           currencies: currencies,
           selectedCode: selectedCode,
+          searchController: searchController,
           onSelected: onSelected,
         ),
       ),

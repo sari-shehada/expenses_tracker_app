@@ -35,10 +35,6 @@ class WalletAppearanceStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final selectedPalette = WalletColorPalette.resolve(selectedColorKey);
-    final selectedIcon = WalletIconOption.resolve(selectedIconKey);
-
     return WalletCreationFlowScaffold(
       step: 3,
       onBack: onBack,
@@ -47,66 +43,99 @@ class WalletAppearanceStep extends StatelessWidget {
       isCtaLoading: isCreating,
       onCtaPressed: onCreate,
       ctaMessage: saveFailed
-          ? _WalletSaveFailure(isCreating: isCreating, onRetry: onRetry!)
+          ? WalletSaveFailureMessage(isCreating: isCreating, onRetry: onRetry!)
           : null,
       backButtonKey: backButtonKey,
       ctaButtonKey: ctaButtonKey,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Personalize your wallet',
-                    style: TextStyle(
-                      color: colors.onSurface,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Choose a color and icon to identify this wallet at a glance',
-                    style: TextStyle(
-                      color: colors.onSurfaceVariant,
-                      fontSize: 14,
-                      height: 20 / 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _ColorPicker(
-                    selectedPalette: selectedPalette,
-                    onSelected: onColorSelected,
-                  ),
-                  const SizedBox(height: 28),
-                  _IconPicker(
-                    selectedIcon: selectedIcon,
-                    onSelected: onIconSelected,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      body: WalletAppearanceStepBody(
+        selectedColorKey: selectedColorKey,
+        selectedIconKey: selectedIconKey,
+        onColorSelected: onColorSelected,
+        onIconSelected: onIconSelected,
       ),
     );
   }
 }
 
-class _WalletSaveFailure extends StatelessWidget {
-  const _WalletSaveFailure({required this.isCreating, required this.onRetry});
+class WalletAppearanceStepBody extends StatelessWidget {
+  const WalletAppearanceStepBody({
+    required this.onColorSelected,
+    required this.onIconSelected,
+    this.selectedColorKey = WalletAppearance.defaultColorKey,
+    this.selectedIconKey = WalletAppearance.defaultIconKey,
+    super.key,
+  });
+
+  final String selectedColorKey;
+  final String selectedIconKey;
+  final ValueChanged<String> onColorSelected;
+  final ValueChanged<String> onIconSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final selectedPalette = WalletColorPalette.resolve(selectedColorKey);
+    final selectedIcon = WalletIconOption.resolve(selectedIconKey);
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Personalize your wallet',
+                  style: TextStyle(
+                    color: colors.onSurface,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Choose a color and icon to identify this wallet at a glance',
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 14,
+                    height: 20 / 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _ColorPicker(
+                  selectedPalette: selectedPalette,
+                  onSelected: onColorSelected,
+                ),
+                const SizedBox(height: 28),
+                _IconPicker(
+                  selectedIcon: selectedIcon,
+                  onSelected: onIconSelected,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class WalletSaveFailureMessage extends StatelessWidget {
+  const WalletSaveFailureMessage({
+    required this.isCreating,
+    required this.onRetry,
+    super.key,
+  });
 
   final bool isCreating;
   final VoidCallback onRetry;

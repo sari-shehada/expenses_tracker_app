@@ -5,6 +5,8 @@ import '../../../currencies/domain/currency_catalog.dart';
 import '../../domain/wallet_appearance.dart';
 import '../../domain/wallet_repository.dart';
 import '../widgets/wallet_appearance_step.dart';
+import '../widgets/wallet_creation_flow_scaffold.dart';
+import '../widgets/wallet_creation_step_transition.dart';
 import '../widgets/wallet_currency_step.dart';
 import '../widgets/wallet_name_step.dart';
 
@@ -26,6 +28,7 @@ class WalletCreationPage extends StatefulWidget {
 
 class _WalletCreationPageState extends State<WalletCreationPage> {
   final _nameController = TextEditingController();
+  final _currencySearchController = TextEditingController();
   final _nameFocusNode = FocusNode();
   final _currencySearchFocusNode = FocusNode();
   int _step = 1;
@@ -39,6 +42,7 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _currencySearchController.dispose();
     _nameFocusNode.dispose();
     _currencySearchFocusNode.dispose();
     super.dispose();
@@ -53,42 +57,65 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
           _showStep(_step - 1);
         }
       },
-      child: switch (_step) {
-        1 => WalletNameStep(
-          controller: _nameController,
-          focusNode: _nameFocusNode,
-          errorText: _nameError,
-          onChanged: _handleNameChanged,
-          onBack: () => Navigator.maybePop(context),
-          onContinue: _continueFromName,
-          backButtonKey: const ValueKey('wallet-creation-back-button'),
-          ctaButtonKey: const ValueKey('wallet-name-continue-button'),
+      child: WalletCreationFlowScaffold(
+        step: _step,
+        onBack: _step == 1
+            ? () => Navigator.maybePop(context)
+            : () => _showStep(_step - 1),
+        ctaLabel: _step == 3 ? 'Create Wallet' : 'Continue',
+        ctaLoadingLabel: 'Creating wallet',
+        isCtaLoading: _step == 3 && _isSaving,
+        onCtaPressed: switch (_step) {
+          1 => _continueFromName,
+          2 => _currency == null ? null : () => _showStep(3),
+          3 => _createWallet,
+          _ => throw StateError('Unsupported Wallet creation step: $_step'),
+        },
+        ctaMessage: _step == 3 && _saveFailed
+            ? WalletSaveFailureMessage(
+                isCreating: _isSaving,
+                onRetry: _createWallet,
+              )
+            : null,
+        backButtonKey: const ValueKey('wallet-creation-back-button'),
+        ctaButtonKey: switch (_step) {
+          1 => const ValueKey('wallet-name-continue-button'),
+          2 => const ValueKey('wallet-currency-continue-button'),
+          3 => const ValueKey('create-wallet-button'),
+          _ => throw StateError('Unsupported Wallet creation step: $_step'),
+        },
+        body: WalletCreationStepTransition(
+          key: const ValueKey('wallet-creation-step-transition'),
+          step: _step,
+          animate: !MediaQuery.disableAnimationsOf(context),
+          child: switch (_step) {
+            1 => WalletNameStepBody(
+              key: const ValueKey('wallet-creation-step-1'),
+              controller: _nameController,
+              focusNode: _nameFocusNode,
+              errorText: _nameError,
+              onChanged: _handleNameChanged,
+              onContinue: _continueFromName,
+            ),
+            2 => WalletCurrencyStepBody(
+              key: const ValueKey('wallet-creation-step-2'),
+              currencies: widget.currencyCatalog.currencies,
+              selectedCode: _currency?.code,
+              searchController: _currencySearchController,
+              searchFocusNode: _currencySearchFocusNode,
+              onSelected: (currency) => setState(() => _currency = currency),
+            ),
+            3 => WalletAppearanceStepBody(
+              key: const ValueKey('wallet-creation-step-3'),
+              selectedColorKey: _colorKey,
+              selectedIconKey: _iconKey,
+              onColorSelected: (key) => setState(() => _colorKey = key),
+              onIconSelected: (key) => setState(() => _iconKey = key),
+            ),
+            _ => throw StateError('Unsupported Wallet creation step: $_step'),
+          },
         ),
-        2 => WalletCurrencyStep(
-          currencies: widget.currencyCatalog.currencies,
-          selectedCode: _currency?.code,
-          searchFocusNode: _currencySearchFocusNode,
-          onSelected: (currency) => setState(() => _currency = currency),
-          onBack: () => _showStep(1),
-          onContinue: () => _showStep(3),
-          backButtonKey: const ValueKey('wallet-creation-back-button'),
-          ctaButtonKey: const ValueKey('wallet-currency-continue-button'),
-        ),
-        3 => WalletAppearanceStep(
-          selectedColorKey: _colorKey,
-          selectedIconKey: _iconKey,
-          onColorSelected: (key) => setState(() => _colorKey = key),
-          onIconSelected: (key) => setState(() => _iconKey = key),
-          onBack: () => _showStep(2),
-          onCreate: _createWallet,
-          isCreating: _isSaving,
-          saveFailed: _saveFailed,
-          onRetry: _createWallet,
-          backButtonKey: const ValueKey('wallet-creation-back-button'),
-          ctaButtonKey: const ValueKey('create-wallet-button'),
-        ),
-        _ => throw StateError('Unsupported Wallet creation step: $_step'),
-      },
+      ),
     );
   }
 

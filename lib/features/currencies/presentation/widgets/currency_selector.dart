@@ -8,6 +8,7 @@ class CurrencySelector extends StatefulWidget {
     required this.currencies,
     required this.onSelected,
     this.selectedCode,
+    this.searchController,
     this.searchFocusNode,
     this.searchPadding = const EdgeInsets.fromLTRB(20, 4, 20, 12),
     this.listPadding = const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -16,6 +17,7 @@ class CurrencySelector extends StatefulWidget {
 
   final List<Currency> currencies;
   final String? selectedCode;
+  final TextEditingController? searchController;
   final FocusNode? searchFocusNode;
   final ValueChanged<Currency> onSelected;
   final EdgeInsetsGeometry searchPadding;
@@ -26,7 +28,21 @@ class CurrencySelector extends StatefulWidget {
 }
 
 class _CurrencySelectorState extends State<CurrencySelector> {
-  String _query = '';
+  late String _query;
+
+  @override
+  void initState() {
+    super.initState();
+    _query = widget.searchController?.text ?? '';
+  }
+
+  @override
+  void didUpdateWidget(CurrencySelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.searchController != widget.searchController) {
+      _query = widget.searchController?.text ?? '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +51,7 @@ class _CurrencySelectorState extends State<CurrencySelector> {
     return Column(
       children: [
         _CurrencySearchField(
+          controller: widget.searchController,
           focusNode: widget.searchFocusNode,
           padding: widget.searchPadding,
           onChanged: (value) => setState(() => _query = value),
@@ -72,11 +89,13 @@ class _CurrencySelectorState extends State<CurrencySelector> {
 
 class _CurrencySearchField extends StatelessWidget {
   const _CurrencySearchField({
+    required this.controller,
     required this.focusNode,
     required this.padding,
     required this.onChanged,
   });
 
+  final TextEditingController? controller;
   final FocusNode? focusNode;
   final EdgeInsetsGeometry padding;
   final ValueChanged<String> onChanged;
@@ -111,6 +130,7 @@ class _CurrencySearchField extends StatelessWidget {
             ),
             TextField(
               key: const ValueKey('currency-search-field'),
+              controller: controller,
               focusNode: focusNode,
               autocorrect: false,
               textInputAction: TextInputAction.search,

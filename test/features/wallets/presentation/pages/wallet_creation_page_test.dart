@@ -8,6 +8,7 @@ import 'package:expenses_tracker/features/wallets/domain/wallet.dart';
 import 'package:expenses_tracker/features/wallets/domain/wallet_appearance.dart';
 import 'package:expenses_tracker/features/wallets/domain/wallet_repository.dart';
 import 'package:expenses_tracker/features/wallets/presentation/pages/wallet_creation_page.dart';
+import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -142,6 +143,50 @@ void main() {
     expect(editableText.focusNode.hasFocus, isFalse);
   });
 
+  testWidgets('animates only the body while shared flow chrome stays fixed', (
+    tester,
+  ) async {
+    await _pumpPage(tester, repository: _FakeWalletRepository());
+
+    final backFinder = find.byKey(
+      const ValueKey('wallet-creation-back-button'),
+    );
+    final indicatorFinder = find.byType(WalletCreationStepIndicator);
+    final initialBackRect = tester.getRect(backFinder);
+    final initialIndicatorRect = tester.getRect(indicatorFinder);
+    final initialCtaRect = tester.getRect(
+      find.byKey(const ValueKey('wallet-name-continue-button')),
+    );
+    final initialBodyX = tester.getTopLeft(find.text('Name your wallet')).dx;
+
+    await tester.enterText(
+      find.byKey(const ValueKey('wallet-name-field')),
+      'Travel card',
+    );
+    await tester.tap(find.byKey(const ValueKey('wallet-name-continue-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(tester.getRect(backFinder), initialBackRect);
+    expect(tester.getRect(indicatorFinder), initialIndicatorRect);
+    expect(
+      tester.getRect(
+        find.byKey(const ValueKey('wallet-currency-continue-button')),
+      ),
+      initialCtaRect,
+    );
+    expect(
+      tester.getTopLeft(find.text('Name your wallet')).dx,
+      lessThan(initialBodyX),
+    );
+    expect(
+      tester.getTopLeft(find.text('Select currency')).dx,
+      greaterThan(initialBodyX),
+    );
+
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('retains the draft while navigating between all steps', (
     tester,
   ) async {
@@ -153,13 +198,13 @@ void main() {
     await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('wallet-creation-back-button')));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Step 2 of 3'), findsOneWidget);
     _expectSelected(tester, const ValueKey('USD'), true);
 
     await tester.tap(find.byKey(const ValueKey('wallet-creation-back-button')));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Step 1 of 3'), findsOneWidget);
     final nameField = tester.widget<TextField>(
@@ -168,11 +213,11 @@ void main() {
     expect(nameField.controller!.text, 'Travel card');
 
     await tester.tap(find.byKey(const ValueKey('wallet-name-continue-button')));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const ValueKey('wallet-currency-continue-button')),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     _expectSelected(tester, const ValueKey('wallet-creation-color-teal'), true);
     _expectSelected(
@@ -199,6 +244,35 @@ void main() {
     expect(find.text('Step 2 of 3'), findsOneWidget);
     _expectSelected(tester, const ValueKey('USD'), true);
     expect(tester.widget<FilledButton>(continueFinder).onPressed, isNotNull);
+  });
+
+  testWidgets('retains currency search after continuing and returning', (
+    tester,
+  ) async {
+    await _pumpPage(tester, repository: _FakeWalletRepository());
+    await _advanceToCurrency(tester, name: 'Cash');
+
+    await tester.tap(find.byKey(const ValueKey('USD')));
+    await tester.pump();
+    await tester.enterText(
+      find.byKey(const ValueKey('currency-search-field')),
+      'missing',
+    );
+    await tester.pump();
+    expect(find.text('No currencies found'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('wallet-currency-continue-button')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('wallet-creation-back-button')));
+    await tester.pumpAndSettle();
+
+    final searchField = tester.widget<TextField>(
+      find.byKey(const ValueKey('currency-search-field')),
+    );
+    expect(searchField.controller?.text, 'missing');
+    expect(find.text('No currencies found'), findsOneWidget);
   });
 
   testWidgets('creates a Wallet from the retained three-step draft', (
@@ -316,7 +390,7 @@ Future<void> _advanceToCurrency(
 }) async {
   await tester.enterText(find.byKey(const ValueKey('wallet-name-field')), name);
   await tester.tap(find.byKey(const ValueKey('wallet-name-continue-button')));
-  await tester.pump();
+  await tester.pumpAndSettle();
 }
 
 Future<void> _advanceToAppearance(
@@ -329,7 +403,7 @@ Future<void> _advanceToAppearance(
   await tester.tap(
     find.byKey(const ValueKey('wallet-currency-continue-button')),
   );
-  await tester.pump();
+  await tester.pumpAndSettle();
 }
 
 Future<void> _pumpPage(
