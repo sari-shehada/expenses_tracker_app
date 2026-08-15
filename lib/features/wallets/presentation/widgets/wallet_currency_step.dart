@@ -11,6 +11,7 @@ class WalletCurrencyStep extends StatelessWidget {
     required this.onSelected,
     required this.onBack,
     required this.onContinue,
+    this.searchFocusNode,
     this.backButtonKey,
     this.ctaButtonKey,
     super.key,
@@ -21,6 +22,7 @@ class WalletCurrencyStep extends StatelessWidget {
   final ValueChanged<Currency> onSelected;
   final VoidCallback onBack;
   final VoidCallback onContinue;
+  final FocusNode? searchFocusNode;
   final Key? backButtonKey;
   final Key? ctaButtonKey;
 
@@ -69,6 +71,7 @@ class WalletCurrencyStep extends StatelessWidget {
               currencies: currencies,
               selectedCode: selectedCode,
               onSelected: onSelected,
+              searchFocusNode: searchFocusNode,
               searchPadding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
               listPadding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             ),

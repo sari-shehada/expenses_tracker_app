@@ -24,6 +24,17 @@ const currencies = [
 ];
 
 void main() {
+  testWidgets('leaves search unfocused by default', (tester) async {
+    await _pumpSelector(tester, selectedCode: null, onSelected: (_) {});
+
+    final searchFinder = find.byKey(const ValueKey('currency-search-field'));
+    final editableText = tester.widget<EditableText>(
+      find.descendant(of: searchFinder, matching: find.byType(EditableText)),
+    );
+
+    expect(editableText.focusNode.hasFocus, isFalse);
+  });
+
   testWidgets('reports taps while leaving selection controlled by its parent', (
     tester,
   ) async {

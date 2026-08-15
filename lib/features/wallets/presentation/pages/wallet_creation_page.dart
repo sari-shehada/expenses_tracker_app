@@ -26,6 +26,8 @@ class WalletCreationPage extends StatefulWidget {
 
 class _WalletCreationPageState extends State<WalletCreationPage> {
   final _nameController = TextEditingController();
+  final _nameFocusNode = FocusNode();
+  final _currencySearchFocusNode = FocusNode();
   int _step = 1;
   Currency? _currency;
   String _colorKey = WalletAppearance.defaultColorKey;
@@ -37,6 +39,8 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _nameFocusNode.dispose();
+    _currencySearchFocusNode.dispose();
     super.dispose();
   }
 
@@ -52,6 +56,7 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
       child: switch (_step) {
         1 => WalletNameStep(
           controller: _nameController,
+          focusNode: _nameFocusNode,
           errorText: _nameError,
           onChanged: _handleNameChanged,
           onBack: () => Navigator.maybePop(context),
@@ -62,6 +67,7 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
         2 => WalletCurrencyStep(
           currencies: widget.currencyCatalog.currencies,
           selectedCode: _currency?.code,
+          searchFocusNode: _currencySearchFocusNode,
           onSelected: (currency) => setState(() => _currency = currency),
           onBack: () => _showStep(1),
           onContinue: () => _showStep(3),
@@ -98,11 +104,13 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
       return;
     }
 
+    if (_nameFocusNode.hasFocus) {
+      _currencySearchFocusNode.requestFocus();
+    }
     setState(() {
       _nameError = null;
       _step = 2;
     });
-    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   void _showStep(int step) {

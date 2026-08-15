@@ -8,6 +8,7 @@ class WalletNameStep extends StatelessWidget {
     required this.onChanged,
     required this.onBack,
     required this.onContinue,
+    this.focusNode,
     this.errorText,
     this.backButtonKey,
     this.ctaButtonKey,
@@ -18,6 +19,7 @@ class WalletNameStep extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final VoidCallback onBack;
   final VoidCallback onContinue;
+  final FocusNode? focusNode;
   final String? errorText;
   final Key? backButtonKey;
   final Key? ctaButtonKey;
@@ -73,10 +75,11 @@ class WalletNameStep extends StatelessWidget {
             TextField(
               key: const ValueKey('wallet-name-field'),
               controller: controller,
+              focusNode: focusNode,
               autofocus: true,
               onChanged: onChanged,
-              onSubmitted: (_) => onContinue(),
-              textInputAction: TextInputAction.done,
+              onEditingComplete: onContinue,
+              textInputAction: TextInputAction.next,
               autocorrect: false,
               style: TextStyle(
                 color: colors.onSurface,

@@ -8,6 +8,7 @@ class CurrencySelector extends StatefulWidget {
     required this.currencies,
     required this.onSelected,
     this.selectedCode,
+    this.searchFocusNode,
     this.searchPadding = const EdgeInsets.fromLTRB(20, 4, 20, 12),
     this.listPadding = const EdgeInsets.fromLTRB(20, 0, 20, 20),
     super.key,
@@ -15,6 +16,7 @@ class CurrencySelector extends StatefulWidget {
 
   final List<Currency> currencies;
   final String? selectedCode;
+  final FocusNode? searchFocusNode;
   final ValueChanged<Currency> onSelected;
   final EdgeInsetsGeometry searchPadding;
   final EdgeInsetsGeometry listPadding;
@@ -33,6 +35,7 @@ class _CurrencySelectorState extends State<CurrencySelector> {
     return Column(
       children: [
         _CurrencySearchField(
+          focusNode: widget.searchFocusNode,
           padding: widget.searchPadding,
           onChanged: (value) => setState(() => _query = value),
         ),
@@ -68,8 +71,13 @@ class _CurrencySelectorState extends State<CurrencySelector> {
 }
 
 class _CurrencySearchField extends StatelessWidget {
-  const _CurrencySearchField({required this.padding, required this.onChanged});
+  const _CurrencySearchField({
+    required this.focusNode,
+    required this.padding,
+    required this.onChanged,
+  });
 
+  final FocusNode? focusNode;
   final EdgeInsetsGeometry padding;
   final ValueChanged<String> onChanged;
 
@@ -103,6 +111,7 @@ class _CurrencySearchField extends StatelessWidget {
             ),
             TextField(
               key: const ValueKey('currency-search-field'),
+              focusNode: focusNode,
               autocorrect: false,
               textInputAction: TextInputAction.search,
               textAlignVertical: TextAlignVertical.center,

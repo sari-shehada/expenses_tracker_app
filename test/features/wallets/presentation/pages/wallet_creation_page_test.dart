@@ -35,6 +35,7 @@ void main() {
       find.byKey(const ValueKey('wallet-name-field')),
     );
     final border = field.decoration!.enabledBorder! as OutlineInputBorder;
+    expect(field.textInputAction, TextInputAction.next);
     expect(border.borderRadius, BorderRadius.circular(14));
     expect(
       tester
@@ -77,6 +78,68 @@ void main() {
 
     expect(find.text('Enter a Wallet name.'), findsOneWidget);
     expect(find.text('Step 1 of 3'), findsOneWidget);
+  });
+
+  testWidgets('moves focus from Wallet name to currency search on Continue', (
+    tester,
+  ) async {
+    await _pumpPage(tester, repository: _FakeWalletRepository());
+    await tester.enterText(
+      find.byKey(const ValueKey('wallet-name-field')),
+      'Travel card',
+    );
+
+    await tester.tap(find.byKey(const ValueKey('wallet-name-continue-button')));
+    await tester.pump();
+
+    final searchFinder = find.byKey(const ValueKey('currency-search-field'));
+    final editableText = tester.widget<EditableText>(
+      find.descendant(of: searchFinder, matching: find.byType(EditableText)),
+    );
+
+    expect(find.text('Step 2 of 3'), findsOneWidget);
+    expect(editableText.focusNode.hasFocus, isTrue);
+  });
+
+  testWidgets('keyboard Next moves focus to currency search', (tester) async {
+    await _pumpPage(tester, repository: _FakeWalletRepository());
+    await tester.enterText(
+      find.byKey(const ValueKey('wallet-name-field')),
+      'Travel card',
+    );
+
+    await tester.testTextInput.receiveAction(TextInputAction.next);
+    await tester.pump();
+
+    final searchFinder = find.byKey(const ValueKey('currency-search-field'));
+    final editableText = tester.widget<EditableText>(
+      find.descendant(of: searchFinder, matching: find.byType(EditableText)),
+    );
+
+    expect(find.text('Step 2 of 3'), findsOneWidget);
+    expect(editableText.focusNode.hasFocus, isTrue);
+  });
+
+  testWidgets('leaves currency search unfocused when Step 1 was unfocused', (
+    tester,
+  ) async {
+    await _pumpPage(tester, repository: _FakeWalletRepository());
+    await tester.enterText(
+      find.byKey(const ValueKey('wallet-name-field')),
+      'Travel card',
+    );
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('wallet-name-continue-button')));
+    await tester.pump();
+
+    final searchFinder = find.byKey(const ValueKey('currency-search-field'));
+    final editableText = tester.widget<EditableText>(
+      find.descendant(of: searchFinder, matching: find.byType(EditableText)),
+    );
+
+    expect(editableText.focusNode.hasFocus, isFalse);
   });
 
   testWidgets('retains the draft while navigating between all steps', (
