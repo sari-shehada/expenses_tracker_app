@@ -5,6 +5,8 @@ import '../../../../app/widgets/app_primary_cta_button.dart';
 import 'wallet_creation_step_indicator.dart';
 
 class WalletCreationFlowScaffold extends StatelessWidget {
+  static const _keyboardInsetAnimationDuration = Duration(milliseconds: 250);
+
   const WalletCreationFlowScaffold({
     required this.step,
     required this.body,
@@ -33,6 +35,7 @@ class WalletCreationFlowScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
@@ -43,26 +46,34 @@ class WalletCreationFlowScaffold extends StatelessWidget {
             ),
             WalletCreationStepIndicator(step: step),
             Expanded(child: body),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (ctaMessage != null) ...[
-                        ctaMessage!,
-                        const SizedBox(height: 8),
+            AnimatedPadding(
+              key: const ValueKey('wallet-creation-keyboard-inset'),
+              duration: _keyboardInsetAnimationDuration,
+              curve: Curves.easeOutCubic,
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (ctaMessage != null) ...[
+                          ctaMessage!,
+                          const SizedBox(height: 8),
+                        ],
+                        AppPrimaryCtaButton(
+                          label: ctaLabel,
+                          loadingLabel: ctaLoadingLabel,
+                          isLoading: isCtaLoading,
+                          onPressed: onCtaPressed,
+                          buttonKey: ctaButtonKey,
+                        ),
                       ],
-                      AppPrimaryCtaButton(
-                        label: ctaLabel,
-                        loadingLabel: ctaLoadingLabel,
-                        isLoading: isCtaLoading,
-                        onPressed: onCtaPressed,
-                        buttonKey: ctaButtonKey,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
