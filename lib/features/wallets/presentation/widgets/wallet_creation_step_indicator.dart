@@ -51,7 +51,7 @@ class WalletCreationStepIndicator extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Flexible(
+                Expanded(
                   child: Text(
                     '$completionPercentage% Complete',
                     maxLines: 1,

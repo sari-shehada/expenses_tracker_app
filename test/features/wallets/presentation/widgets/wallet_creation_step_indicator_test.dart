@@ -28,6 +28,12 @@ void main() {
             .width,
         closeTo(variant.fillWidth, 0.01),
       );
+      expect(
+        tester.getRect(find.text('${variant.percentage}% Complete')).right,
+        tester
+            .getRect(find.byKey(const ValueKey('wallet-step-progress-track')))
+            .right,
+      );
 
       final semantics = tester.getSemantics(
         find.byType(WalletCreationStepIndicator),
