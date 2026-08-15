@@ -236,7 +236,16 @@ void main() {
     final continueFinder = find.byKey(
       const ValueKey('wallet-currency-continue-button'),
     );
-    expect(tester.widget<FilledButton>(continueFinder).onPressed, isNull);
+    final disabledButton = tester.widget<FilledButton>(continueFinder);
+    expect(disabledButton.onPressed, isNull);
+    expect(
+      disabledButton.style?.backgroundColor?.resolve({WidgetState.disabled}),
+      AppTheme.light.colorScheme.outlineVariant,
+    );
+    expect(
+      disabledButton.style?.foregroundColor?.resolve({WidgetState.disabled}),
+      AppTheme.light.colorScheme.onSurfaceVariant,
+    );
 
     await tester.tap(find.byKey(const ValueKey('USD')));
     await tester.pump();

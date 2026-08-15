@@ -33,8 +33,12 @@ class AppPrimaryCtaButton extends StatelessWidget {
         style: FilledButton.styleFrom(
           backgroundColor: colors.primary,
           foregroundColor: colors.onPrimary,
-          disabledBackgroundColor: colors.primary,
-          disabledForegroundColor: colors.onPrimary,
+          disabledBackgroundColor: isLoading
+              ? colors.primary
+              : colors.outlineVariant,
+          disabledForegroundColor: isLoading
+              ? colors.onPrimary
+              : colors.onSurfaceVariant,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

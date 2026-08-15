@@ -45,6 +45,25 @@ void main() {
     expect(presses, 1);
   });
 
+  testWidgets('uses a clearly muted disabled appearance', (tester) async {
+    await _pumpButton(tester, isEnabled: false);
+
+    final button = tester.widget<FilledButton>(
+      find.byKey(const ValueKey('primary-cta')),
+    );
+    final disabledStates = {WidgetState.disabled};
+
+    expect(button.onPressed, isNull);
+    expect(
+      button.style?.backgroundColor?.resolve(disabledStates),
+      AppTheme.light.colorScheme.outlineVariant,
+    );
+    expect(
+      button.style?.foregroundColor?.resolve(disabledStates),
+      AppTheme.light.colorScheme.onSurfaceVariant,
+    );
+  });
+
   testWidgets('shows progress and disables presses while loading', (
     tester,
   ) async {
@@ -54,6 +73,19 @@ void main() {
     expect(find.text('Continue'), findsNothing);
     expect(find.text('Working'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    final button = tester.widget<FilledButton>(
+      find.byKey(const ValueKey('primary-cta')),
+    );
+    final disabledStates = {WidgetState.disabled};
+    expect(
+      button.style?.backgroundColor?.resolve(disabledStates),
+      AppTheme.light.colorScheme.primary,
+    );
+    expect(
+      button.style?.foregroundColor?.resolve(disabledStates),
+      AppTheme.light.colorScheme.onPrimary,
+    );
 
     await tester.tap(find.byKey(const ValueKey('primary-cta')));
 
@@ -78,6 +110,7 @@ void main() {
 Future<void> _pumpButton(
   WidgetTester tester, {
   bool isLoading = false,
+  bool isEnabled = true,
   VoidCallback? onPressed,
 }) {
   return tester.pumpWidget(
@@ -91,7 +124,7 @@ Future<void> _pumpButton(
               label: 'Continue',
               loadingLabel: 'Working',
               isLoading: isLoading,
-              onPressed: onPressed ?? () {},
+              onPressed: isEnabled ? onPressed ?? () {} : null,
               buttonKey: const ValueKey('primary-cta'),
             ),
           ),
