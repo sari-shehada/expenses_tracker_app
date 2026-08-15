@@ -1,3 +1,4 @@
+import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_motion.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_transition.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +13,8 @@ void main() {
     final transition = tester.widget<WalletCreationStepTransition>(
       find.byType(WalletCreationStepTransition),
     );
-    expect(transition.duration, const Duration(milliseconds: 500));
+    expect(transition.duration, WalletCreationMotion.stepTransitionDuration);
+    expect(transition.curve, WalletCreationMotion.stepTransitionCurve);
     expect(tester.getTopLeft(find.byKey(const ValueKey('step-1'))).dx, 0);
 
     harnessKey.currentState!.showStep(2);

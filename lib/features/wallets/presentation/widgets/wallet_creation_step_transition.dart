@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'wallet_creation_motion.dart';
+
 class WalletCreationStepTransition extends StatefulWidget {
   const WalletCreationStepTransition({
     required this.step,
     required this.child,
     this.animate = true,
-    this.duration = const Duration(milliseconds: 500),
-    this.curve = const Cubic(0.65, 0, 0.35, 1),
+    this.duration = WalletCreationMotion.stepTransitionDuration,
+    this.curve = WalletCreationMotion.stepTransitionCurve,
     super.key,
   });
 

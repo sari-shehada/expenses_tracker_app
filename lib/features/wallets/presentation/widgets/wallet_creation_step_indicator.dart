@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'wallet_creation_motion.dart';
+
 class WalletCreationStepIndicator extends StatelessWidget {
   const WalletCreationStepIndicator({required this.step, super.key})
     : assert(step >= 1 && step <= totalSteps);
@@ -26,6 +28,9 @@ class WalletCreationStepIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final completionPercentage = _completionPercentage;
+    final animationDuration = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : WalletCreationMotion.stepTransitionDuration;
 
     return Semantics(
       container: true,
@@ -78,10 +83,12 @@ class WalletCreationStepIndicator extends StatelessWidget {
                     ColoredBox(color: colors.outlineVariant),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: FractionallySizedBox(
+                      child: AnimatedFractionallySizedBox(
                         key: const ValueKey('wallet-step-progress-fill'),
                         widthFactor: _fillFraction,
                         heightFactor: 1,
+                        duration: animationDuration,
+                        curve: WalletCreationMotion.stepTransitionCurve,
                         child: ColoredBox(color: colors.primary),
                       ),
                     ),
