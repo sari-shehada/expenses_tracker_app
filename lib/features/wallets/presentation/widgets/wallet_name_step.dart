@@ -73,6 +73,7 @@ class WalletNameStep extends StatelessWidget {
             TextField(
               key: const ValueKey('wallet-name-field'),
               controller: controller,
+              autofocus: true,
               onChanged: onChanged,
               onSubmitted: (_) => onContinue(),
               textInputAction: TextInputAction.done,

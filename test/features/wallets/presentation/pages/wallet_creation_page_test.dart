@@ -44,6 +44,21 @@ void main() {
     );
   });
 
+  testWidgets('focuses the Wallet name field when the flow opens', (
+    tester,
+  ) async {
+    await _pumpPage(tester, repository: _FakeWalletRepository());
+
+    final fieldFinder = find.byKey(const ValueKey('wallet-name-field'));
+    final field = tester.widget<TextField>(fieldFinder);
+    final editableText = tester.widget<EditableText>(
+      find.descendant(of: fieldFinder, matching: find.byType(EditableText)),
+    );
+
+    expect(field.autofocus, isTrue);
+    expect(editableText.focusNode.hasFocus, isTrue);
+  });
+
   testWidgets('requires a non-blank name before advancing', (tester) async {
     await _pumpPage(tester, repository: _FakeWalletRepository());
 
