@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/app_motion.dart';
 import '../../domain/wallet_appearance.dart';
 import '../wallet_color_palette.dart';
 import '../wallet_icon_catalog.dart';
@@ -35,8 +36,11 @@ class WalletAppearanceStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedPalette = WalletColorPalette.resolve(selectedColorKey);
+
     return WalletCreationFlowScaffold(
       step: 3,
+      accentColor: selectedPalette.accentColor,
       onBack: onBack,
       ctaLabel: 'Create Wallet',
       ctaLoadingLabel: 'Creating wallet',
@@ -76,6 +80,9 @@ class WalletAppearanceStepBody extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final selectedPalette = WalletColorPalette.resolve(selectedColorKey);
     final selectedIcon = WalletIconOption.resolve(selectedIconKey);
+    final colorAnimationDuration = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : AppMotion.colorTransitionDuration;
 
     return SingleChildScrollView(
       child: Column(
@@ -119,6 +126,8 @@ class WalletAppearanceStepBody extends StatelessWidget {
                 const SizedBox(height: 28),
                 _IconPicker(
                   selectedIcon: selectedIcon,
+                  selectedPalette: selectedPalette,
+                  colorAnimationDuration: colorAnimationDuration,
                   onSelected: onIconSelected,
                 ),
               ],
@@ -254,9 +263,16 @@ class _ColorSwatch extends StatelessWidget {
 }
 
 class _IconPicker extends StatelessWidget {
-  const _IconPicker({required this.selectedIcon, required this.onSelected});
+  const _IconPicker({
+    required this.selectedIcon,
+    required this.selectedPalette,
+    required this.colorAnimationDuration,
+    required this.onSelected,
+  });
 
   final WalletIconOption selectedIcon;
+  final WalletColorPalette selectedPalette;
+  final Duration colorAnimationDuration;
   final ValueChanged<String> onSelected;
 
   @override
@@ -281,6 +297,8 @@ class _IconPicker extends StatelessWidget {
             return _IconChoice(
               option: option,
               isSelected: option.key == selectedIcon.key,
+              selectedPalette: selectedPalette,
+              colorAnimationDuration: colorAnimationDuration,
               onSelected: () => onSelected(option.key),
             );
           },
@@ -294,11 +312,15 @@ class _IconChoice extends StatelessWidget {
   const _IconChoice({
     required this.option,
     required this.isSelected,
+    required this.selectedPalette,
+    required this.colorAnimationDuration,
     required this.onSelected,
   });
 
   final WalletIconOption option;
   final bool isSelected;
+  final WalletColorPalette selectedPalette;
+  final Duration colorAnimationDuration;
   final VoidCallback onSelected;
 
   @override
@@ -312,61 +334,74 @@ class _IconChoice extends StatelessWidget {
       selected: isSelected,
       label: option.name,
       excludeSemantics: true,
-      child: Material(
-        color: isSelected
-            ? colors.primaryContainer
-            : colors.surfaceContainerLowest,
-        shape: RoundedRectangleBorder(
+      child: AnimatedContainer(
+        key: ValueKey('wallet-creation-icon-card-${option.key}'),
+        duration: colorAnimationDuration,
+        curve: AppMotion.colorTransitionCurve,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? selectedPalette.cardColor
+              : colors.surfaceContainerLowest,
           borderRadius: radius,
-          side: BorderSide(
+          border: Border.all(
             color: isSelected
-                ? colors.secondaryContainer
+                ? selectedPalette.borderColor
                 : colors.outlineVariant,
           ),
         ),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onSelected,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(4, 12, 4, 10),
-            child: Column(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? colors.primary
-                        : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    option.icon,
-                    color: isSelected
-                        ? colors.onPrimary
-                        : colors.onSurfaceVariant,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: Text(
-                    option.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onSelected,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(4, 12, 4, 10),
+              child: Column(
+                children: [
+                  AnimatedContainer(
+                    key: ValueKey('wallet-creation-icon-accent-${option.key}'),
+                    width: 36,
+                    height: 36,
+                    duration: colorAnimationDuration,
+                    curve: AppMotion.colorTransitionCurve,
+                    decoration: BoxDecoration(
                       color: isSelected
-                          ? colors.primary
+                          ? selectedPalette.accentColor
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      option.icon,
+                      color: isSelected
+                          ? colors.onPrimary
                           : colors.onSurfaceVariant,
-                      fontSize: 11,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.w500,
+                      size: 20,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: AnimatedDefaultTextStyle(
+                      duration: colorAnimationDuration,
+                      curve: AppMotion.colorTransitionCurve,
+                      style: TextStyle(
+                        color: isSelected
+                            ? selectedPalette.accentColor
+                            : colors.onSurfaceVariant,
+                        fontSize: 11,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                      ),
+                      child: Text(
+                        option.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

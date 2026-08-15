@@ -113,6 +113,7 @@ void main() {
     await _pumpIndicatorHarness(tester, harnessKey: harnessKey);
 
     expect(_fillColor(tester), AppTheme.light.colorScheme.primary);
+    expect(_stepCountColor(tester), AppTheme.light.colorScheme.primary);
 
     harnessKey.currentState!.showAccent(Colors.green);
     await tester.pump();
@@ -121,10 +122,26 @@ void main() {
     final animatedColor = _fillColor(tester);
     expect(animatedColor, isNot(AppTheme.light.colorScheme.primary));
     expect(animatedColor, isNot(Colors.green));
+    final animatedStepCountColor = _stepCountColor(tester);
+    expect(animatedStepCountColor, isNot(AppTheme.light.colorScheme.primary));
+    expect(animatedStepCountColor, isNot(Colors.green));
 
     await tester.pumpAndSettle();
     expect(_fillColor(tester), Colors.green);
+    expect(_stepCountColor(tester), Colors.green);
   });
+}
+
+Color? _stepCountColor(WidgetTester tester) {
+  return tester
+      .widget<DefaultTextStyle>(
+        find.descendant(
+          of: find.byKey(const ValueKey('wallet-step-count-label-style')),
+          matching: find.byType(DefaultTextStyle),
+        ),
+      )
+      .style
+      .color;
 }
 
 Color? _fillColor(WidgetTester tester) {

@@ -4,6 +4,7 @@ import '../../../currencies/domain/currency.dart';
 import '../../../currencies/domain/currency_catalog.dart';
 import '../../domain/wallet_appearance.dart';
 import '../../domain/wallet_repository.dart';
+import '../wallet_color_palette.dart';
 import '../widgets/wallet_appearance_step.dart';
 import '../widgets/wallet_creation_flow_scaffold.dart';
 import '../widgets/wallet_creation_step_transition.dart';
@@ -50,6 +51,8 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedPalette = WalletColorPalette.resolve(_colorKey);
+
     return PopScope<bool>(
       canPop: _step == 1,
       onPopInvokedWithResult: (didPop, _) {
@@ -59,6 +62,7 @@ class _WalletCreationPageState extends State<WalletCreationPage> {
       },
       child: WalletCreationFlowScaffold(
         step: _step,
+        accentColor: _step == 3 ? selectedPalette.accentColor : null,
         onBack: _step == 1
             ? () => Navigator.maybePop(context)
             : () => _showStep(_step - 1),

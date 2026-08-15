@@ -8,6 +8,8 @@ import 'package:expenses_tracker/features/wallets/domain/wallet.dart';
 import 'package:expenses_tracker/features/wallets/domain/wallet_appearance.dart';
 import 'package:expenses_tracker/features/wallets/domain/wallet_repository.dart';
 import 'package:expenses_tracker/features/wallets/presentation/pages/wallet_creation_page.dart';
+import 'package:expenses_tracker/features/wallets/presentation/wallet_color_palette.dart';
+import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_flow_scaffold.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -292,6 +294,17 @@ void main() {
     await _advanceToAppearance(tester, name: 'Cash');
 
     await tester.tap(find.byKey(const ValueKey('wallet-creation-color-teal')));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<WalletCreationFlowScaffold>(
+            find.byType(WalletCreationFlowScaffold),
+          )
+          .accentColor,
+      WalletColorPalette.resolve('teal').accentColor,
+    );
+
     await tester.tap(find.byKey(const ValueKey('wallet-creation-icon-travel')));
     await tester.tap(find.byKey(const ValueKey('create-wallet-button')));
     await tester.pump();

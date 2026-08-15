@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:expenses_tracker/app/app_motion.dart';
 import 'package:expenses_tracker/app/app_theme.dart';
 import 'package:expenses_tracker/features/wallets/domain/wallet_appearance.dart';
 import 'package:expenses_tracker/features/wallets/presentation/wallet_color_palette.dart';
@@ -57,6 +58,63 @@ void main() {
     _expectSelected(tester, 'wallet-creation-icon-travel', true);
   });
 
+  testWidgets('animates the selected palette across icon and flow chrome', (
+    tester,
+  ) async {
+    await _pumpStep(tester);
+    final blue = WalletColorPalette.blue;
+    final green = WalletColorPalette.resolve('green');
+
+    expect(_progressFillColor(tester), blue.accentColor);
+    expect(_ctaColor(tester), blue.accentColor);
+    expect(
+      _renderedColor(tester, 'wallet-creation-icon-card-wallet'),
+      blue.cardColor,
+    );
+    expect(
+      _renderedColor(tester, 'wallet-creation-icon-accent-wallet'),
+      blue.accentColor,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('wallet-creation-color-green')));
+    await tester.pump();
+    await tester.pump(AppMotion.colorTransitionDuration * 0.5);
+
+    for (final animatedColor in [
+      _progressFillColor(tester),
+      _ctaColor(tester),
+      _renderedColor(tester, 'wallet-creation-icon-accent-wallet'),
+    ]) {
+      expect(animatedColor, isNot(blue.accentColor));
+      expect(animatedColor, isNot(green.accentColor));
+    }
+    expect(
+      _renderedColor(tester, 'wallet-creation-icon-card-wallet'),
+      isNot(blue.cardColor),
+    );
+    expect(
+      _renderedColor(tester, 'wallet-creation-icon-card-wallet'),
+      isNot(green.cardColor),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(_progressFillColor(tester), green.accentColor);
+    expect(_ctaColor(tester), green.accentColor);
+    expect(
+      _renderedColor(tester, 'wallet-creation-icon-card-wallet'),
+      green.cardColor,
+    );
+    expect(
+      _renderedBorderColor(tester, 'wallet-creation-icon-card-wallet'),
+      green.borderColor,
+    );
+    expect(
+      _renderedColor(tester, 'wallet-creation-icon-accent-wallet'),
+      green.accentColor,
+    );
+  });
+
   testWidgets('creates with the retained appearance', (tester) async {
     var createCalls = 0;
     await _pumpStep(tester, onCreate: () => createCalls++);
@@ -91,6 +149,40 @@ void main() {
       semantics.dispose();
     }
   });
+}
+
+Color? _ctaColor(WidgetTester tester) {
+  return tester
+      .widget<FilledButton>(find.byType(FilledButton))
+      .style
+      ?.backgroundColor
+      ?.resolve(<WidgetState>{});
+}
+
+Color? _progressFillColor(WidgetTester tester) {
+  return _renderedColor(tester, 'wallet-step-progress-fill');
+}
+
+Color? _renderedColor(WidgetTester tester, String key) {
+  return _renderedDecoration(tester, key).color;
+}
+
+Color? _renderedBorderColor(WidgetTester tester, String key) {
+  return _renderedDecoration(tester, key).border?.top.color;
+}
+
+BoxDecoration _renderedDecoration(WidgetTester tester, String key) {
+  return tester
+          .widget<DecoratedBox>(
+            find
+                .descendant(
+                  of: find.byKey(ValueKey(key)),
+                  matching: find.byType(DecoratedBox),
+                )
+                .first,
+          )
+          .decoration
+      as BoxDecoration;
 }
 
 void _expectSelected(WidgetTester tester, String key, bool expected) {

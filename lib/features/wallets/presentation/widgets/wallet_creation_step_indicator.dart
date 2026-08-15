@@ -53,14 +53,19 @@ class WalletCreationStepIndicator extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'Step $step of $totalSteps',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: AnimatedDefaultTextStyle(
+                    key: const ValueKey('wallet-step-count-label-style'),
+                    duration: colorAnimationDuration,
+                    curve: AppMotion.colorTransitionCurve,
                     style: TextStyle(
-                      color: colors.primary,
+                      color: accentColor ?? colors.primary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
+                    ),
+                    child: Text(
+                      'Step $step of $totalSteps',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
