@@ -1,4 +1,5 @@
 import 'package:expenses_tracker/app/app_theme.dart';
+import 'package:expenses_tracker/app/app_motion.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_motion.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_indicator.dart';
 import 'package:flutter/material.dart';
@@ -104,6 +105,36 @@ void main() {
     );
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
+
+  testWidgets('keeps primary as the default and animates an accent override', (
+    tester,
+  ) async {
+    final harnessKey = GlobalKey<_IndicatorHarnessState>();
+    await _pumpIndicatorHarness(tester, harnessKey: harnessKey);
+
+    expect(_fillColor(tester), AppTheme.light.colorScheme.primary);
+
+    harnessKey.currentState!.showAccent(Colors.green);
+    await tester.pump();
+    await tester.pump(AppMotion.colorTransitionDuration * 0.5);
+
+    final animatedColor = _fillColor(tester);
+    expect(animatedColor, isNot(AppTheme.light.colorScheme.primary));
+    expect(animatedColor, isNot(Colors.green));
+
+    await tester.pumpAndSettle();
+    expect(_fillColor(tester), Colors.green);
+  });
+}
+
+Color? _fillColor(WidgetTester tester) {
+  final decoratedBox = tester.widget<DecoratedBox>(
+    find.descendant(
+      of: find.byKey(const ValueKey('wallet-step-progress-fill')),
+      matching: find.byType(DecoratedBox),
+    ),
+  );
+  return (decoratedBox.decoration as BoxDecoration).color;
 }
 
 Future<void> _pumpIndicator(WidgetTester tester, {required int step}) {
@@ -150,11 +181,13 @@ class _IndicatorHarness extends StatefulWidget {
 
 class _IndicatorHarnessState extends State<_IndicatorHarness> {
   int _step = 1;
+  Color? _accentColor;
 
   void showStep(int step) => setState(() => _step = step);
+  void showAccent(Color color) => setState(() => _accentColor = color);
 
   @override
   Widget build(BuildContext context) {
-    return WalletCreationStepIndicator(step: _step);
+    return WalletCreationStepIndicator(step: _step, accentColor: _accentColor);
   }
 }

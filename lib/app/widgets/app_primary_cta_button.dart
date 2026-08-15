@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../app_motion.dart';
+
 class AppPrimaryCtaButton extends StatelessWidget {
   const AppPrimaryCtaButton({
     required this.label,
     required this.onPressed,
     this.isLoading = false,
     this.loadingLabel = 'Loading',
+    this.backgroundColor,
     this.buttonKey,
     this.labelKey,
     this.loadingKey,
@@ -16,12 +19,38 @@ class AppPrimaryCtaButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final String loadingLabel;
+  final Color? backgroundColor;
   final Key? buttonKey;
   final Key? labelKey;
   final Key? loadingKey;
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    if (backgroundColor == null) {
+      return _buildButton(context, backgroundColor: colors.primary);
+    }
+
+    return TweenAnimationBuilder<Color?>(
+      tween: ColorTween(end: backgroundColor),
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : AppMotion.colorTransitionDuration,
+      curve: AppMotion.colorTransitionCurve,
+      builder: (context, animatedBackgroundColor, _) => _buildButton(
+        context,
+        backgroundColor: animatedBackgroundColor ?? colors.primary,
+        buttonAnimationDuration: Duration.zero,
+      ),
+    );
+  }
+
+  Widget _buildButton(
+    BuildContext context, {
+    required Color backgroundColor,
+    Duration? buttonAnimationDuration,
+  }) {
     final colors = Theme.of(context).colorScheme;
 
     return SizedBox(
@@ -31,10 +60,10 @@ class AppPrimaryCtaButton extends StatelessWidget {
         key: buttonKey,
         onPressed: isLoading ? null : onPressed,
         style: FilledButton.styleFrom(
-          backgroundColor: colors.primary,
+          backgroundColor: backgroundColor,
           foregroundColor: colors.onPrimary,
           disabledBackgroundColor: isLoading
-              ? colors.primary
+              ? backgroundColor
               : colors.outlineVariant,
           disabledForegroundColor: isLoading
               ? colors.onPrimary
@@ -44,6 +73,7 @@ class AppPrimaryCtaButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          animationDuration: buttonAnimationDuration,
         ),
         child: Semantics(
           liveRegion: isLoading,

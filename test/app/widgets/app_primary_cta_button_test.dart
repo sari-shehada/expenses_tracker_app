@@ -1,4 +1,5 @@
 import 'package:expenses_tracker/app/app_theme.dart';
+import 'package:expenses_tracker/app/app_motion.dart';
 import 'package:expenses_tracker/app/widgets/app_primary_cta_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,6 +44,22 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('primary-cta')));
 
     expect(presses, 1);
+  });
+
+  testWidgets('animates an explicit background color override', (tester) async {
+    final harnessKey = GlobalKey<_ButtonHarnessState>();
+    await _pumpAnimatedButton(tester, harnessKey: harnessKey);
+
+    harnessKey.currentState!.showColor(Colors.green);
+    await tester.pump();
+    await tester.pump(AppMotion.colorTransitionDuration * 0.5);
+
+    final animatedColor = _resolvedBackgroundColor(tester);
+    expect(animatedColor, isNot(AppTheme.light.colorScheme.primary));
+    expect(animatedColor, isNot(Colors.green));
+
+    await tester.pumpAndSettle();
+    expect(_resolvedBackgroundColor(tester), Colors.green);
   });
 
   testWidgets('uses a clearly muted disabled appearance', (tester) async {
@@ -107,6 +124,14 @@ void main() {
   });
 }
 
+Color? _resolvedBackgroundColor(WidgetTester tester) {
+  return tester
+      .widget<FilledButton>(find.byKey(const ValueKey('primary-cta')))
+      .style
+      ?.backgroundColor
+      ?.resolve(<WidgetState>{});
+}
+
 Future<void> _pumpButton(
   WidgetTester tester, {
   bool isLoading = false,
@@ -132,4 +157,44 @@ Future<void> _pumpButton(
       ),
     ),
   );
+}
+
+Future<void> _pumpAnimatedButton(
+  WidgetTester tester, {
+  required GlobalKey<_ButtonHarnessState> harnessKey,
+}) {
+  return tester.pumpWidget(
+    MaterialApp(
+      theme: AppTheme.light,
+      home: Scaffold(body: _ButtonHarness(key: harnessKey)),
+    ),
+  );
+}
+
+class _ButtonHarness extends StatefulWidget {
+  const _ButtonHarness({super.key});
+
+  @override
+  State<_ButtonHarness> createState() => _ButtonHarnessState();
+}
+
+class _ButtonHarnessState extends State<_ButtonHarness> {
+  Color _backgroundColor = AppTheme.light.colorScheme.primary;
+
+  void showColor(Color color) => setState(() => _backgroundColor = color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SizedBox(
+        width: 354,
+        child: AppPrimaryCtaButton(
+          label: 'Continue',
+          onPressed: () {},
+          backgroundColor: _backgroundColor,
+          buttonKey: const ValueKey('primary-cta'),
+        ),
+      ),
+    );
+  }
 }

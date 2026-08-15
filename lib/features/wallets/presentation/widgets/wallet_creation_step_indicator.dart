@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/app_motion.dart';
 import 'wallet_creation_motion.dart';
 
 class WalletCreationStepIndicator extends StatelessWidget {
-  const WalletCreationStepIndicator({required this.step, super.key})
-    : assert(step >= 1 && step <= totalSteps);
+  const WalletCreationStepIndicator({
+    required this.step,
+    this.accentColor,
+    super.key,
+  }) : assert(step >= 1 && step <= totalSteps);
 
   static const totalSteps = 3;
 
   final int step;
+  final Color? accentColor;
 
   int get _completionPercentage => switch (step) {
     1 => 33,
@@ -28,9 +33,13 @@ class WalletCreationStepIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final completionPercentage = _completionPercentage;
-    final animationDuration = MediaQuery.disableAnimationsOf(context)
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+    final animationDuration = disableAnimations
         ? Duration.zero
         : WalletCreationMotion.stepTransitionDuration;
+    final colorAnimationDuration = disableAnimations || accentColor == null
+        ? Duration.zero
+        : AppMotion.colorTransitionDuration;
 
     return Semantics(
       container: true,
@@ -89,7 +98,11 @@ class WalletCreationStepIndicator extends StatelessWidget {
                         heightFactor: 1,
                         duration: animationDuration,
                         curve: WalletCreationMotion.stepTransitionCurve,
-                        child: ColoredBox(color: colors.primary),
+                        child: AnimatedContainer(
+                          duration: colorAnimationDuration,
+                          curve: AppMotion.colorTransitionCurve,
+                          color: accentColor ?? colors.primary,
+                        ),
                       ),
                     ),
                   ],

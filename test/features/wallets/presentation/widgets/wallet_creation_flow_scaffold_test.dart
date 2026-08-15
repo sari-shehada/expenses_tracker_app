@@ -1,5 +1,7 @@
 import 'package:expenses_tracker/app/app_theme.dart';
+import 'package:expenses_tracker/app/widgets/app_primary_cta_button.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_flow_scaffold.dart';
+import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -46,6 +48,33 @@ void main() {
     expect(
       tester.getSize(find.byKey(const ValueKey('flow-cta-button'))).height,
       48,
+    );
+  });
+
+  testWidgets('forwards an optional accent to the progress and CTA', (
+    tester,
+  ) async {
+    await _pumpScaffold(
+      tester,
+      step: 3,
+      accentColor: Colors.green,
+      onBack: () {},
+      onCtaPressed: () {},
+    );
+
+    expect(
+      tester
+          .widget<WalletCreationStepIndicator>(
+            find.byType(WalletCreationStepIndicator),
+          )
+          .accentColor,
+      Colors.green,
+    );
+    expect(
+      tester
+          .widget<AppPrimaryCtaButton>(find.byType(AppPrimaryCtaButton))
+          .backgroundColor,
+      Colors.green,
     );
   });
 
@@ -106,6 +135,7 @@ Future<void> _pumpScaffold(
   required VoidCallback onBack,
   required VoidCallback onCtaPressed,
   bool isCtaLoading = false,
+  Color? accentColor,
   Size size = const Size(402, 874),
 }) {
   tester.view.physicalSize = size;
@@ -123,6 +153,7 @@ Future<void> _pumpScaffold(
         ctaLabel: step == 3 ? 'Create Wallet' : 'Continue',
         ctaLoadingLabel: 'Creating wallet',
         isCtaLoading: isCtaLoading,
+        accentColor: accentColor,
         onCtaPressed: onCtaPressed,
         backButtonKey: const ValueKey('flow-back-button'),
         ctaButtonKey: const ValueKey('flow-cta-button'),

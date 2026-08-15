@@ -16,6 +16,7 @@ class WalletCreationFlowScaffold extends StatelessWidget {
     this.isCtaLoading = false,
     this.ctaLoadingLabel = 'Loading',
     this.ctaMessage,
+    this.accentColor,
     this.backButtonKey,
     this.ctaButtonKey,
     super.key,
@@ -29,6 +30,7 @@ class WalletCreationFlowScaffold extends StatelessWidget {
   final bool isCtaLoading;
   final String ctaLoadingLabel;
   final Widget? ctaMessage;
+  final Color? accentColor;
   final Key? backButtonKey;
   final Key? ctaButtonKey;
 
@@ -44,7 +46,7 @@ class WalletCreationFlowScaffold extends StatelessWidget {
               onBack: onBack,
               backButtonKey: backButtonKey,
             ),
-            WalletCreationStepIndicator(step: step),
+            WalletCreationStepIndicator(step: step, accentColor: accentColor),
             Expanded(child: body),
             AnimatedPadding(
               key: const ValueKey('wallet-creation-keyboard-inset'),
@@ -70,6 +72,7 @@ class WalletCreationFlowScaffold extends StatelessWidget {
                           loadingLabel: ctaLoadingLabel,
                           isLoading: isCtaLoading,
                           onPressed: onCtaPressed,
+                          backgroundColor: accentColor,
                           buttonKey: ctaButtonKey,
                         ),
                       ],
