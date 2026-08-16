@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_bottom_navigation_bar.dart';
 import '../../../currencies/domain/currency_catalog.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../sheets/presentation/pages/sheets_page.dart';
@@ -41,28 +42,20 @@ class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
     ];
 
     return Scaffold(
+      extendBody: true,
       body: pages[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) =>
-            setState(() => _selectedIndex = index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.description_outlined),
-            selectedIcon: Icon(Icons.description),
-            label: 'Sheets',
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.symmetric(horizontal: 24),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          heightFactor: 1,
+          child: AppBottomNavigationBar(
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (index) =>
+                setState(() => _selectedIndex = index),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
-            label: 'Wallets',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+        ),
       ),
     );
   }

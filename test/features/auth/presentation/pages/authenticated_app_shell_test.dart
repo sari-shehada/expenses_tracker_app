@@ -1,3 +1,4 @@
+import 'package:expenses_tracker/app/widgets/app_bottom_navigation_bar.dart';
 import 'package:expenses_tracker/features/auth/domain/auth_user.dart';
 import 'package:expenses_tracker/features/auth/presentation/pages/authenticated_app_shell.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency.dart';
@@ -25,6 +26,32 @@ void main() {
     expect(find.text('No Wallets yet.'), findsNothing);
   });
 
+  testWidgets('uses the floating Figma bottom navigation', (tester) async {
+    await _pumpPage(tester);
+
+    expect(find.byType(AppBottomNavigationBar), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(
+      tester.getSize(find.byType(AppBottomNavigationBar)),
+      const Size(354, 72),
+    );
+    expect(tester.widget<Scaffold>(find.byType(Scaffold)).extendBody, isTrue);
+  });
+
+  testWidgets('positions the navigation above the bottom safe area', (
+    tester,
+  ) async {
+    const bottomSafeArea = 34.0;
+    await _pumpPage(tester, bottomSafeArea: bottomSafeArea);
+
+    final navigationBottom = tester
+        .getBottomRight(find.byType(AppBottomNavigationBar))
+        .dy;
+    final shellBottom = tester.getBottomRight(find.byType(Scaffold)).dy;
+
+    expect(shellBottom - navigationBottom, bottomSafeArea);
+  });
+
   testWidgets('keeps Add Sheet as a placeholder action', (tester) async {
     await _pumpPage(tester);
 
@@ -47,7 +74,7 @@ void main() {
   testWidgets('opens Settings from the bottom navigation', (tester) async {
     await _pumpPage(tester);
 
-    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('sign-out-button')), findsOneWidget);
@@ -59,7 +86,7 @@ void main() {
     var signOutCalls = 0;
     await _pumpPage(tester, onSignOut: () => signOutCalls++);
 
-    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('sign-out-button')));
 
@@ -67,19 +94,28 @@ void main() {
   });
 }
 
-Future<void> _pumpPage(WidgetTester tester, {VoidCallback? onSignOut}) {
+Future<void> _pumpPage(
+  WidgetTester tester, {
+  VoidCallback? onSignOut,
+  double bottomSafeArea = 0,
+}) {
   return tester.pumpWidget(
     MaterialApp(
-      home: AuthenticatedAppShell(
-        user: const AuthUser(
-          id: 'user-id',
-          email: 'user@example.com',
-          displayName: 'User',
-          photoUrl: null,
+      home: MediaQuery(
+        data: MediaQueryData.fromView(
+          tester.view,
+        ).copyWith(padding: EdgeInsets.only(bottom: bottomSafeArea)),
+        child: AuthenticatedAppShell(
+          user: const AuthUser(
+            id: 'user-id',
+            email: 'user@example.com',
+            displayName: 'User',
+            photoUrl: null,
+          ),
+          onSignOut: onSignOut ?? () {},
+          walletRepository: _FakeWalletRepository(),
+          currencyCatalog: _FakeCurrencyCatalog(),
         ),
-        onSignOut: onSignOut ?? () {},
-        walletRepository: _FakeWalletRepository(),
-        currencyCatalog: _FakeCurrencyCatalog(),
       ),
     ),
   );
