@@ -1,0 +1,145 @@
+name: Internal Device Build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: internal-development-delivery
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Require the dev branch
+        env:
+          SELECTED_REF: ${{ github.ref }}
+        run: |
+          if [[ "$SELECTED_REF" != "refs/heads/dev" ]]; then
+            echo "::error::Run Internal Device Build from the dev branch. Selected ref: $SELECTED_REF"
+            exit 1
+          fi
+
+      - name: Check out dev
+        uses: actions/checkout@v6.1.0
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2.23.0
+        with:
+          channel: stable
+          flutter-version: 3.44.2
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+
+  prepare:
+    name: Allocate build number
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      build_number: ${{ steps.deployment.outputs.build_number }}
+      deployment_sha: ${{ steps.deployment.outputs.deployment_sha }}
+
+    steps:
+      - name: Check out dev
+        uses: actions/checkout@v6.1.0
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Increment and commit the build number
+        id: deployment
+        env:
+          RUN_ID: ${{ github.run_id }}
+          TRIGGER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin dev
+
+          existing_commit="$(
+            git log origin/dev \
+              --fixed-strings \
+              --grep="CI-Deployment-Run: $RUN_ID" \
+              --format='%H' \
+              -n 1
+          )"
+
+          if [[ -n "$existing_commit" ]]; then
+            git checkout --detach "$existing_commit"
+            echo "Reusing build-number commit $existing_commit for this workflow run."
+          fi
+
+          version_value="$(
+            sed -nE 's/^version:[[:space:]]*([^[:space:]#]+).*$/\1/p' pubspec.yaml
+          )"
+
+          if [[ ! "$version_value" =~ ^(.+)\+([0-9]+)$ ]]; then
+            echo "::error::pubspec.yaml must contain version: <build-name>+<integer>. Found: $version_value"
+            exit 1
+          fi
+
+          build_name="${BASH_REMATCH[1]}"
+          current_build_number="${BASH_REMATCH[2]}"
+
+          if [[ -n "$existing_commit" ]]; then
+            echo "build_number=$current_build_number" >> "$GITHUB_OUTPUT"
+            echo "deployment_sha=$existing_commit" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          remote_sha="$(git rev-parse origin/dev)"
+          if [[ "$remote_sha" != "$TRIGGER_SHA" ]]; then
+            echo "::error::dev changed while tests were running. No build number was allocated; run the workflow again."
+            echo "Triggered commit: $TRIGGER_SHA"
+            echo "Current dev commit: $remote_sha"
+            exit 1
+          fi
+
+          next_build_number=$((10#$current_build_number + 1))
+          next_version="$build_name+$next_build_number"
+
+          sed -i -E \
+            "s|^version:[[:space:]]*[^[:space:]#]+|version: $next_version|" \
+            pubspec.yaml
+
+          git diff --check
+          git add pubspec.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit \
+            -m "chore: bump internal build number to $next_build_number" \
+            -m "CI-Deployment-Run: $RUN_ID"
+          git push origin HEAD:dev
+
+          deployment_sha="$(git rev-parse HEAD)"
+          echo "build_number=$next_build_number" >> "$GITHUB_OUTPUT"
+          echo "deployment_sha=$deployment_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize preparation
+        env:
+          BUILD_NUMBER: ${{ steps.deployment.outputs.build_number }}
+          DEPLOYMENT_SHA: ${{ steps.deployment.outputs.deployment_sha }}
+        run: |
+          {
+            echo "### Internal device build prepared"
+            echo
+            echo "- Build number: \`$BUILD_NUMBER\`"
+            echo "- Commit: \`$DEPLOYMENT_SHA\`"
+            echo "- Tests: passed"
+          } >> "$GITHUB_STEP_SUMMARY"
