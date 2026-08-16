@@ -143,3 +143,453 @@ jobs:
             echo "- Commit: \`$DEPLOYMENT_SHA\`"
             echo "- Tests: passed"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  android:
+    name: Build Android APK
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: dev
+    timeout-minutes: 30
+    outputs:
+      artifact_name: ${{ steps.package.outputs.artifact_name }}
+      diawi_link: ${{ steps.diawi.outputs.diawi_link }}
+
+    steps:
+      - name: Check out the deployment commit
+        uses: actions/checkout@v6.1.0
+        with:
+          ref: ${{ needs.prepare.outputs.deployment_sha }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v5.6.0
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2.23.0
+        with:
+          channel: stable
+          flutter-version: 3.44.2
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Restore the internal signing keystore
+        id: keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$KEYSTORE_BASE64" || -z "$KEYSTORE_PASSWORD" || -z "$KEY_ALIAS" || -z "$KEY_PASSWORD" ]]; then
+            echo "::error::Configure all four internal Android signing secrets before running this workflow."
+            exit 1
+          fi
+
+          keystore_path="$RUNNER_TEMP/internal-release.jks"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+
+          if [[ ! -s "$keystore_path" ]]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 did not produce a keystore file."
+            exit 1
+          fi
+
+          echo "keystore_path=$keystore_path" >> "$GITHUB_OUTPUT"
+
+      - name: Build the universal release APK
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ steps.keystore.outputs.keystore_path }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build apk --release --dart-define=env=development
+
+      - name: Prepare the APK artifact
+        id: package
+        env:
+          BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+        run: |
+          set -euo pipefail
+
+          source_path="build/app/outputs/flutter-apk/app-release.apk"
+          artifact_name="internal-android-$BUILD_NUMBER"
+          artifact_path="dist/expenses-tracker-dev-$BUILD_NUMBER.apk"
+
+          if [[ ! -f "$source_path" ]]; then
+            echo "::error::Flutter did not produce the expected universal APK at $source_path."
+            exit 1
+          fi
+
+          mkdir -p dist
+          cp "$source_path" "$artifact_path"
+
+          size_bytes="$(stat --format='%s' "$artifact_path")"
+          echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          echo "artifact_path=$artifact_path" >> "$GITHUB_OUTPUT"
+          echo "size_bytes=$size_bytes" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the APK artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ steps.package.outputs.artifact_name }}
+          path: ${{ steps.package.outputs.artifact_path }}
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Upload the APK to Diawi
+        id: diawi
+        env:
+          DIAWI_TOKEN: ${{ secrets.DIAWI_TOKEN }}
+          APK_PATH: ${{ steps.package.outputs.artifact_path }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$DIAWI_TOKEN" ]]; then
+            echo "::error::Configure DIAWI_TOKEN as a repository secret."
+            exit 1
+          fi
+
+          upload_response="$(
+            curl --silent --show-error --fail-with-body \
+              --request POST 'https://upload.diawi.com/' \
+              --form "token=$DIAWI_TOKEN" \
+              --form "file=@$APK_PATH"
+          )"
+
+          job_id="$(
+            printf '%s' "$upload_response" | \
+              python3 -c 'import json, sys; print(json.load(sys.stdin).get("job", ""))'
+          )"
+
+          if [[ -z "$job_id" ]]; then
+            echo "::error::Diawi did not return an upload job identifier."
+            exit 1
+          fi
+
+          for attempt in {1..30}; do
+            status_response="$(
+              curl --silent --show-error --fail-with-body \
+                --get 'https://upload.diawi.com/status' \
+                --data-urlencode "token=$DIAWI_TOKEN" \
+                --data-urlencode "job=$job_id"
+            )"
+
+            diawi_link="$(
+              printf '%s' "$status_response" | \
+                python3 -c 'import json, sys; print(json.load(sys.stdin).get("link", ""))'
+            )"
+
+            if [[ -n "$diawi_link" ]]; then
+              echo "diawi_link=$diawi_link" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            sleep 5
+          done
+
+          echo "::error::Diawi did not finish processing within the expected time."
+          exit 1
+
+      - name: Summarize Android packaging
+        env:
+          ARTIFACT_NAME: ${{ steps.package.outputs.artifact_name }}
+          DIAWI_LINK: ${{ steps.diawi.outputs.diawi_link }}
+          SIZE_BYTES: ${{ steps.package.outputs.size_bytes }}
+        run: |
+          {
+            echo "### Android package"
+            echo
+            echo "- Artifact: \`$ARTIFACT_NAME\`"
+            echo "- Size: \`$SIZE_BYTES bytes\`"
+            echo "- Signing: stable internal keystore"
+            echo "- Diawi: $DIAWI_LINK"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  ios:
+    name: Build iOS IPA and upload to Diawi
+    needs: prepare
+    runs-on: macos-latest
+    environment: dev
+    timeout-minutes: 45
+    outputs:
+      artifact_name: ${{ steps.package.outputs.artifact_name }}
+      diawi_link: ${{ steps.diawi.outputs.diawi_link }}
+
+    steps:
+      - name: Check out the deployment commit
+        uses: actions/checkout@v6.1.0
+        with:
+          ref: ${{ needs.prepare.outputs.deployment_sha }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2.23.0
+        with:
+          channel: stable
+          flutter-version: 3.44.2
+          cache: true
+
+      - name: Install Apple signing assets
+        id: signing
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$CERTIFICATE_BASE64" || -z "$CERTIFICATE_PASSWORD" || -z "$PROVISIONING_PROFILE_BASE64" ]]; then
+            echo "::error::Configure all three internal iOS signing secrets in the dev environment."
+            exit 1
+          fi
+
+          certificate_path="$RUNNER_TEMP/internal-distribution.p12"
+          downloaded_profile_path="$RUNNER_TEMP/internal.mobileprovision"
+          profile_plist_path="$RUNNER_TEMP/internal-profile.plist"
+          keychain_path="$RUNNER_TEMP/internal-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 24)"
+
+          printf '%s' "$CERTIFICATE_BASE64" | base64 --decode > "$certificate_path"
+          printf '%s' "$PROVISIONING_PROFILE_BASE64" | base64 --decode > "$downloaded_profile_path"
+
+          if [[ ! -s "$certificate_path" || ! -s "$downloaded_profile_path" ]]; then
+            echo "::error::An iOS signing secret did not produce a valid file."
+            exit 1
+          fi
+
+          security create-keychain -p "$keychain_password" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security import "$certificate_path" \
+            -P "$CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$keychain_path"
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$keychain_password" \
+            "$keychain_path"
+
+          default_keychain="$(security default-keychain -d user | tr -d '"')"
+          security list-keychains -d user -s "$keychain_path" "$default_keychain"
+
+          security cms -D -i "$downloaded_profile_path" > "$profile_plist_path"
+          profile_uuid="$(/usr/libexec/PlistBuddy -c 'Print UUID' "$profile_plist_path")"
+          installed_profile_path="$HOME/Library/MobileDevice/Provisioning Profiles/$profile_uuid.mobileprovision"
+          mkdir -p "$(dirname "$installed_profile_path")"
+          cp "$downloaded_profile_path" "$installed_profile_path"
+
+          if ! security find-identity -v -p codesigning "$keychain_path" | grep -q '1)'; then
+            echo "::error::The certificate did not provide a usable code-signing identity."
+            exit 1
+          fi
+
+          echo "keychain_path=$keychain_path" >> "$GITHUB_OUTPUT"
+          echo "profile_path=$installed_profile_path" >> "$GITHUB_OUTPUT"
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build the signed Ad Hoc IPA
+        run: |
+          flutter build ipa \
+            --release \
+            --dart-define=env=development \
+            --export-options-plist=ios/ExportOptions-AdHoc.plist
+
+      - name: Prepare the IPA artifact
+        id: package
+        env:
+          BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+        run: |
+          set -euo pipefail
+
+          source_path="$(find build/ios/ipa -maxdepth 1 -type f -name '*.ipa' -print -quit)"
+          artifact_name="internal-ios-$BUILD_NUMBER"
+          artifact_path="dist/expenses-tracker-dev-$BUILD_NUMBER.ipa"
+
+          if [[ -z "$source_path" || ! -f "$source_path" ]]; then
+            echo "::error::Flutter did not produce an IPA in build/ios/ipa."
+            exit 1
+          fi
+
+          mkdir -p dist
+          cp "$source_path" "$artifact_path"
+
+          size_bytes="$(stat -f '%z' "$artifact_path")"
+          echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          echo "artifact_path=$artifact_path" >> "$GITHUB_OUTPUT"
+          echo "size_bytes=$size_bytes" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the IPA artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ steps.package.outputs.artifact_name }}
+          path: ${{ steps.package.outputs.artifact_path }}
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Upload the IPA to Diawi
+        id: diawi
+        env:
+          DIAWI_TOKEN: ${{ secrets.DIAWI_TOKEN }}
+          IPA_PATH: ${{ steps.package.outputs.artifact_path }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$DIAWI_TOKEN" ]]; then
+            echo "::error::Configure DIAWI_TOKEN as a repository secret."
+            exit 1
+          fi
+
+          upload_response="$(
+            curl --silent --show-error --fail-with-body \
+              --request POST 'https://upload.diawi.com/' \
+              --form "token=$DIAWI_TOKEN" \
+              --form "file=@$IPA_PATH"
+          )"
+
+          job_id="$(
+            printf '%s' "$upload_response" | \
+              python3 -c 'import json, sys; print(json.load(sys.stdin).get("job", ""))'
+          )"
+
+          if [[ -z "$job_id" ]]; then
+            echo "::error::Diawi did not return an upload job identifier."
+            exit 1
+          fi
+
+          for attempt in {1..30}; do
+            status_response="$(
+              curl --silent --show-error --fail-with-body \
+                --get 'https://upload.diawi.com/status' \
+                --data-urlencode "token=$DIAWI_TOKEN" \
+                --data-urlencode "job=$job_id"
+            )"
+
+            diawi_link="$(
+              printf '%s' "$status_response" | \
+                python3 -c 'import json, sys; print(json.load(sys.stdin).get("link", ""))'
+            )"
+
+            if [[ -n "$diawi_link" ]]; then
+              echo "diawi_link=$diawi_link" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            sleep 5
+          done
+
+          echo "::error::Diawi did not finish processing within the expected time."
+          exit 1
+
+      - name: Summarize iOS packaging
+        env:
+          ARTIFACT_NAME: ${{ steps.package.outputs.artifact_name }}
+          DIAWI_LINK: ${{ steps.diawi.outputs.diawi_link }}
+          SIZE_BYTES: ${{ steps.package.outputs.size_bytes }}
+        run: |
+          {
+            echo "### iOS package"
+            echo
+            echo "- Artifact: \`$ARTIFACT_NAME\`"
+            echo "- Size: \`$SIZE_BYTES bytes\`"
+            echo "- Diawi: $DIAWI_LINK"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove Apple signing assets
+        if: always()
+        env:
+          KEYCHAIN_PATH: ${{ steps.signing.outputs.keychain_path }}
+          PROFILE_PATH: ${{ steps.signing.outputs.profile_path }}
+        run: |
+          if [[ -n "$PROFILE_PATH" ]]; then
+            rm -f "$PROFILE_PATH"
+          fi
+
+          if [[ -n "$KEYCHAIN_PATH" ]]; then
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
+
+  notify:
+    name: Send install links to Telegram
+    needs:
+      - prepare
+      - android
+      - ios
+    runs-on: ubuntu-latest
+    environment: dev
+    timeout-minutes: 10
+
+    steps:
+      - name: Send the deployment to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+          DEPLOYMENT_SHA: ${{ needs.prepare.outputs.deployment_sha }}
+          ANDROID_LINK: ${{ needs.android.outputs.diawi_link }}
+          IOS_LINK: ${{ needs.ios.outputs.diawi_link }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$TELEGRAM_BOT_TOKEN" || -z "$TELEGRAM_CHAT_ID" ]]; then
+            echo "::error::Configure TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in the dev environment."
+            exit 1
+          fi
+
+          if [[ -z "$ANDROID_LINK" || -z "$IOS_LINK" ]]; then
+            echo "::error::Both Diawi installation links are required before notifying Telegram."
+            exit 1
+          fi
+
+          short_sha="${DEPLOYMENT_SHA:0:7}"
+          message="$(
+            printf 'Expenses Tracker internal build %s\n\nAndroid: %s\niOS: %s\n\nCommit: %s' \
+              "$BUILD_NUMBER" \
+              "$ANDROID_LINK" \
+              "$IOS_LINK" \
+              "$short_sha"
+          )"
+
+          response="$(
+            curl --silent --show-error --fail-with-body \
+              --request POST \
+              "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+              --form-string "chat_id=$TELEGRAM_CHAT_ID" \
+              --form-string "text=$message" \
+              --form-string 'disable_web_page_preview=true'
+          )"
+
+          printf '%s' "$response" | python3 -c '
+          import json
+          import sys
+
+          result = json.load(sys.stdin)
+          if not result.get("ok"):
+              print("Telegram rejected the deployment message.", file=sys.stderr)
+              sys.exit(1)
+          '
+
+      - name: Summarize delivery
+        env:
+          BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+          ANDROID_LINK: ${{ needs.android.outputs.diawi_link }}
+          IOS_LINK: ${{ needs.ios.outputs.diawi_link }}
+        run: |
+          {
+            echo "### Telegram delivery"
+            echo
+            echo "- Build: \`$BUILD_NUMBER\`"
+            echo "- Android: $ANDROID_LINK"
+            echo "- iOS: $IOS_LINK"
+          } >> "$GITHUB_STEP_SUMMARY"
