@@ -379,6 +379,8 @@ jobs:
           CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
           CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
           PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          EXPECTED_BUNDLE_ID: com.example.expensestrackerxx
+          EXPECTED_TEAM_ID: 5Y8SJ78G67
         run: |
           set -euo pipefail
 
@@ -391,6 +393,8 @@ jobs:
           downloaded_profile_path="$RUNNER_TEMP/internal.mobileprovision"
           profile_plist_path="$RUNNER_TEMP/internal-profile.plist"
           keychain_path="$RUNNER_TEMP/internal-signing.keychain-db"
+          xcconfig_path="$RUNNER_TEMP/internal-signing.xcconfig"
+          export_options_path="$RUNNER_TEMP/ExportOptions-AdHoc.plist"
           keychain_password="$(openssl rand -hex 24)"
 
           printf '%s' "$CERTIFICATE_BASE64" | base64 --decode > "$certificate_path"
@@ -420,8 +424,28 @@ jobs:
           security list-keychains -d user -s "$keychain_path" "$default_keychain"
 
           security cms -D -i "$downloaded_profile_path" > "$profile_plist_path"
-          profile_uuid="$(/usr/libexec/PlistBuddy -c 'Print UUID' "$profile_plist_path")"
-          installed_profile_path="$HOME/Library/MobileDevice/Provisioning Profiles/$profile_uuid.mobileprovision"
+          profile_uuid="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$profile_plist_path")"
+          profile_name="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$profile_plist_path")"
+          profile_team="$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' "$profile_plist_path")"
+          profile_app_identifier="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$profile_plist_path")"
+
+          if [[ "$profile_team" != "$EXPECTED_TEAM_ID" ]]; then
+            echo "::error::The provisioning profile belongs to team $profile_team; expected $EXPECTED_TEAM_ID."
+            exit 1
+          fi
+
+          expected_app_identifier="$EXPECTED_TEAM_ID.$EXPECTED_BUNDLE_ID"
+          if [[ "$profile_app_identifier" != "$expected_app_identifier" ]]; then
+            echo "::error::The provisioning profile targets $profile_app_identifier; expected $expected_app_identifier."
+            exit 1
+          fi
+
+          if ! /usr/libexec/PlistBuddy -c 'Print :ProvisionedDevices' "$profile_plist_path" > /dev/null; then
+            echo "::error::The supplied provisioning profile does not contain registered devices."
+            exit 1
+          fi
+
+          installed_profile_path="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$profile_uuid.mobileprovision"
           mkdir -p "$(dirname "$installed_profile_path")"
           cp "$downloaded_profile_path" "$installed_profile_path"
 
@@ -430,18 +454,59 @@ jobs:
             exit 1
           fi
 
+          {
+            echo 'CODE_SIGN_STYLE = Manual'
+            echo "DEVELOPMENT_TEAM = $profile_team"
+            echo 'CODE_SIGN_IDENTITY = Apple Distribution'
+            echo 'CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution'
+            echo "PROVISIONING_PROFILE_SPECIFIER = $profile_uuid"
+          } > "$xcconfig_path"
+
+          python3 - \
+            'ios/ExportOptions-AdHoc.plist' \
+            "$export_options_path" \
+            "$profile_team" \
+            "$EXPECTED_BUNDLE_ID" \
+            "$profile_uuid" <<'PY'
+          import plistlib
+          import sys
+
+          source_path, output_path, team_id, bundle_id, profile_uuid = sys.argv[1:]
+
+          with open(source_path, "rb") as source:
+              export_options = plistlib.load(source)
+
+          export_options.update(
+              {
+                  "signingStyle": "manual",
+                  "signingCertificate": "Apple Distribution",
+                  "teamID": team_id,
+                  "provisioningProfiles": {bundle_id: profile_uuid},
+              }
+          )
+
+          with open(output_path, "wb") as output:
+              plistlib.dump(export_options, output)
+          PY
+
           echo "keychain_path=$keychain_path" >> "$GITHUB_OUTPUT"
           echo "profile_path=$installed_profile_path" >> "$GITHUB_OUTPUT"
+          echo "profile_name=$profile_name" >> "$GITHUB_OUTPUT"
+          echo "xcconfig_path=$xcconfig_path" >> "$GITHUB_OUTPUT"
+          echo "export_options_path=$export_options_path" >> "$GITHUB_OUTPUT"
 
       - name: Get dependencies
         run: flutter pub get
 
       - name: Build the signed Ad Hoc IPA
+        env:
+          XCODE_XCCONFIG_FILE: ${{ steps.signing.outputs.xcconfig_path }}
+          EXPORT_OPTIONS_PATH: ${{ steps.signing.outputs.export_options_path }}
         run: |
           flutter build ipa \
             --release \
             --dart-define=env=development \
-            --export-options-plist=ios/ExportOptions-AdHoc.plist
+            --export-options-plist="$EXPORT_OPTIONS_PATH"
 
       - name: Prepare the IPA artifact
         id: package
@@ -534,6 +599,7 @@ jobs:
         env:
           ARTIFACT_NAME: ${{ steps.package.outputs.artifact_name }}
           DIAWI_LINK: ${{ steps.diawi.outputs.diawi_link }}
+          PROFILE_NAME: ${{ steps.signing.outputs.profile_name }}
           SIZE_BYTES: ${{ steps.package.outputs.size_bytes }}
         run: |
           {
@@ -541,6 +607,7 @@ jobs:
             echo
             echo "- Artifact: \`$ARTIFACT_NAME\`"
             echo "- Size: \`$SIZE_BYTES bytes\`"
+            echo "- Signing: manual Ad Hoc with \`$PROFILE_NAME\`"
             echo "- Diawi: $DIAWI_LINK"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -549,9 +616,19 @@ jobs:
         env:
           KEYCHAIN_PATH: ${{ steps.signing.outputs.keychain_path }}
           PROFILE_PATH: ${{ steps.signing.outputs.profile_path }}
+          XCCONFIG_PATH: ${{ steps.signing.outputs.xcconfig_path }}
+          EXPORT_OPTIONS_PATH: ${{ steps.signing.outputs.export_options_path }}
         run: |
           if [[ -n "$PROFILE_PATH" ]]; then
             rm -f "$PROFILE_PATH"
+          fi
+
+          if [[ -n "$XCCONFIG_PATH" ]]; then
+            rm -f "$XCCONFIG_PATH"
+          fi
+
+          if [[ -n "$EXPORT_OPTIONS_PATH" ]]; then
+            rm -f "$EXPORT_OPTIONS_PATH"
           fi
 
           if [[ -n "$KEYCHAIN_PATH" ]]; then
