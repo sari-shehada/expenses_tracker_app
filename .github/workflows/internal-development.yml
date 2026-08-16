@@ -202,13 +202,18 @@ jobs:
 
           echo "keystore_path=$keystore_path" >> "$GITHUB_OUTPUT"
 
-      - name: Build the universal release APK
+      - name: Build the 64-bit ARM release APK
         env:
           ANDROID_KEYSTORE_PATH: ${{ steps.keystore.outputs.keystore_path }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: flutter build apk --release --dart-define=env=development
+        run: |
+          flutter build apk \
+            --release \
+            --dart-define=env=development \
+            --target-platform=android-arm64 \
+            --split-per-abi
 
       - name: Prepare the APK artifact
         id: package
@@ -217,12 +222,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          source_path="build/app/outputs/flutter-apk/app-release.apk"
+          source_path="build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
           artifact_name="internal-android-$BUILD_NUMBER"
           artifact_path="dist/expenses-tracker-dev-$BUILD_NUMBER.apk"
+          diawi_max_bytes=50000000
 
           if [[ ! -f "$source_path" ]]; then
-            echo "::error::Flutter did not produce the expected universal APK at $source_path."
+            echo "::error::Flutter did not produce the expected ARM64 APK at $source_path."
             exit 1
           fi
 
@@ -230,6 +236,11 @@ jobs:
           cp "$source_path" "$artifact_path"
 
           size_bytes="$(stat --format='%s' "$artifact_path")"
+          if (( size_bytes > diawi_max_bytes )); then
+            echo "::error::The ARM64 APK is $size_bytes bytes; the Diawi Free plan accepts at most $diawi_max_bytes bytes."
+            exit 1
+          fi
+
           echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
           echo "artifact_path=$artifact_path" >> "$GITHUB_OUTPUT"
           echo "size_bytes=$size_bytes" >> "$GITHUB_OUTPUT"
@@ -256,12 +267,39 @@ jobs:
             exit 1
           fi
 
-          upload_response="$(
-            curl --silent --show-error --fail-with-body \
+          response_path="$RUNNER_TEMP/diawi-android-upload.json"
+          http_status="$(
+            curl --silent --show-error \
               --request POST 'https://upload.diawi.com/' \
               --form "token=$DIAWI_TOKEN" \
-              --form "file=@$APK_PATH"
+              --form "file=@$APK_PATH" \
+              --output "$response_path" \
+              --write-out '%{http_code}'
           )"
+          upload_response="$(cat "$response_path")"
+
+          if [[ ! "$http_status" =~ ^2[0-9][0-9]$ ]]; then
+            error_message="$(
+              printf '%s' "$upload_response" | python3 -c '
+          import json
+          import sys
+
+          try:
+              result = json.load(sys.stdin)
+          except (json.JSONDecodeError, TypeError):
+              print("Diawi returned a non-JSON error response.")
+          else:
+              print(
+                  result.get("message")
+                  or result.get("error")
+                  or result.get("description")
+                  or "Diawi did not include an error message."
+              )
+          '
+            )"
+            echo "::error::Diawi rejected the Android upload with HTTP $http_status: $error_message"
+            exit 1
+          fi
 
           job_id="$(
             printf '%s' "$upload_response" | \
