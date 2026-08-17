@@ -51,6 +51,23 @@ void main() {
     );
   });
 
+  testWidgets('extends the step body behind the overlaid CTA', (tester) async {
+    await _pumpScaffold(
+      tester,
+      step: 2,
+      body: const ColoredBox(key: ValueKey('flow-body'), color: Colors.white),
+      onBack: () {},
+      onCtaPressed: () {},
+    );
+
+    final bodyRect = tester.getRect(find.byKey(const ValueKey('flow-body')));
+    final ctaRect = tester.getRect(
+      find.byKey(const ValueKey('flow-cta-button')),
+    );
+
+    expect(bodyRect.bottom, greaterThan(ctaRect.top));
+  });
+
   testWidgets('forwards an optional accent to the progress and CTA', (
     tester,
   ) async {
@@ -137,6 +154,7 @@ Future<void> _pumpScaffold(
   bool isCtaLoading = false,
   Color? accentColor,
   Size size = const Size(402, 874),
+  Widget body = const Center(child: Text('Step content')),
 }) {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -148,7 +166,7 @@ Future<void> _pumpScaffold(
       theme: AppTheme.light,
       home: WalletCreationFlowScaffold(
         step: step,
-        body: const Center(child: Text('Step content')),
+        body: body,
         onBack: onBack,
         ctaLabel: step == 3 ? 'Create Wallet' : 'Continue',
         ctaLoadingLabel: 'Creating wallet',

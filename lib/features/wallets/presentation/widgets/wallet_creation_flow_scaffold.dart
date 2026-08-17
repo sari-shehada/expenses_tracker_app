@@ -47,38 +47,49 @@ class WalletCreationFlowScaffold extends StatelessWidget {
               backButtonKey: backButtonKey,
             ),
             WalletCreationStepIndicator(step: step, accentColor: accentColor),
-            Expanded(child: body),
-            AnimatedPadding(
-              key: const ValueKey('wallet-creation-keyboard-inset'),
-              duration: _keyboardInsetAnimationDuration,
-              curve: Curves.easeOutCubic,
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.viewInsetsOf(context).bottom,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 560),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (ctaMessage != null) ...[
-                          ctaMessage!,
-                          const SizedBox(height: 8),
-                        ],
-                        AppPrimaryCtaButton(
-                          label: ctaLabel,
-                          loadingLabel: ctaLoadingLabel,
-                          isLoading: isCtaLoading,
-                          onPressed: onCtaPressed,
-                          backgroundColor: accentColor,
-                          buttonKey: ctaButtonKey,
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  body,
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: AnimatedPadding(
+                      key: const ValueKey('wallet-creation-keyboard-inset'),
+                      duration: _keyboardInsetAnimationDuration,
+                      curve: Curves.easeOutCubic,
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.viewInsetsOf(context).bottom,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                        child: Center(
+                          heightFactor: 1,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 560),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (ctaMessage != null) ...[
+                                  ctaMessage!,
+                                  const SizedBox(height: 8),
+                                ],
+                                AppPrimaryCtaButton(
+                                  label: ctaLabel,
+                                  loadingLabel: ctaLoadingLabel,
+                                  isLoading: isCtaLoading,
+                                  onPressed: onCtaPressed,
+                                  backgroundColor: accentColor,
+                                  buttonKey: ctaButtonKey,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
