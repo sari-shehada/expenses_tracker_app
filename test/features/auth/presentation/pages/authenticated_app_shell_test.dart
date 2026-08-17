@@ -21,7 +21,7 @@ void main() {
   testWidgets('shows Sheets as the default destination', (tester) async {
     await _pumpPage(tester);
 
-    expect(find.text('No Sheets yet'), findsOneWidget);
+    expect(find.text('No sheets yet'), findsOneWidget);
     expect(find.text('Add Sheet'), findsOneWidget);
     expect(find.text('No Wallets yet.'), findsNothing);
   });
@@ -58,7 +58,7 @@ void main() {
     await tester.tap(find.text('Add Sheet'));
     await tester.pumpAndSettle();
 
-    expect(find.text('No Sheets yet'), findsOneWidget);
+    expect(find.text('No sheets yet'), findsOneWidget);
   });
 
   testWidgets('opens Wallets from the bottom navigation', (tester) async {
@@ -68,7 +68,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('No Wallets yet.'), findsOneWidget);
-    expect(find.text('No Sheets yet'), findsNothing);
+    expect(find.text('No sheets yet'), findsNothing);
   });
 
   testWidgets('opens Settings from the bottom navigation', (tester) async {
@@ -78,7 +78,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('sign-out-button')), findsOneWidget);
-    expect(find.text('No Sheets yet'), findsNothing);
+    expect(find.text('No sheets yet'), findsNothing);
     expect(find.text('No Wallets yet.'), findsNothing);
   });
 

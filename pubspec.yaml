@@ -32,4 +32,4 @@ flutter:
     - assets/data/currencies.json
     - assets/icons/app_navigation/
     - assets/images/currency_flags/
-    - assets/images/sheets_empty_state.png
+    - assets/images/sheets_empty_state.svg

@@ -1,85 +1,92 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import '../widgets/sheets_empty_state_cta.dart';
 
 class SheetsPage extends StatelessWidget {
   const SheetsPage({required this.onAddSheet, super.key});
+
+  static const _horizontalPadding = 32.0;
+  static const _verticalPadding = 24.0;
+  static const _contentSpacing = 24.0;
+  static const _illustrationSize = 220.0;
 
   final VoidCallback onAddSheet;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final headingColor = Color.alphaBlend(
-      colorScheme.primary.withValues(alpha: 0.74),
-      colorScheme.surface,
-    );
-
-    return Stack(
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final minimumContentHeight = (constraints.maxHeight - 96).clamp(
-              0.0,
-              double.infinity,
-            );
-
-            return SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 88),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: minimumContentHeight),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 560),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 320),
-                          child: const AspectRatio(
-                            aspectRatio: 1,
-                            child: Image(
-                              key: ValueKey('sheets-empty-state-illustration'),
-                              image: AssetImage(
-                                'assets/images/sheets_empty_state.png',
-                              ),
-                              fit: BoxFit.contain,
-                              excludeFromSemantics: true,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'No Sheets yet',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(
-                                color: headingColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Create a Sheet to organize expenses for a month, '
-                          'trip, or project.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: _horizontalPadding,
+            vertical: _verticalPadding,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: (constraints.maxHeight - (_verticalPadding * 2)).clamp(
+                0.0,
+                double.infinity,
               ),
-            );
-          },
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: _contentSpacing,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/sheets_empty_state.svg',
+                    key: const ValueKey('sheets-empty-state-illustration'),
+                    width: _illustrationSize,
+                    height: _illustrationSize,
+                    fit: BoxFit.contain,
+                    excludeFromSemantics: true,
+                  ),
+                  const _SheetsEmptyStateText(),
+                  SheetsEmptyStateCta(onPressed: onAddSheet),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SheetsEmptyStateText extends StatelessWidget {
+  const _SheetsEmptyStateText();
+
+  static const _textSpacing = 8.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      spacing: _textSpacing,
+      children: [
+        Text(
+          'No sheets yet',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
         ),
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: FloatingActionButton.extended(
-            key: const ValueKey('add-sheet-button'),
-            onPressed: onAddSheet,
-            label: const Text('Add Sheet'),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Text(
+            'Create your first sheet to start tracking expenses by trip, '
+            'project, or category.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: colorScheme.onSurfaceVariant,
+              fontSize: 14,
+              height: 20 / 14,
+            ),
           ),
         ),
       ],
