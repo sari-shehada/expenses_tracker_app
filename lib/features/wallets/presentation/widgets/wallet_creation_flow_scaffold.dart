@@ -3,9 +3,15 @@ import 'package:flutter/material.dart';
 import '../../../../app/widgets/app_page_header.dart';
 import '../../../../app/widgets/app_primary_cta_button.dart';
 import 'wallet_creation_step_indicator.dart';
+import 'wallet_creation_step_scroll_view.dart';
 
 class WalletCreationFlowScaffold extends StatelessWidget {
   static const _keyboardInsetAnimationDuration = Duration(milliseconds: 250);
+  static const _ctaHeight = 48.0;
+  static const _ctaBottomPadding = 16.0;
+  static const _contentToCtaSpacing = 24.0;
+  static const _ctaMessageHeight = 48.0;
+  static const _ctaMessageSpacing = 8.0;
 
   const WalletCreationFlowScaffold({
     required this.step,
@@ -51,7 +57,10 @@ class WalletCreationFlowScaffold extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  body,
+                  WalletCreationFlowMetrics(
+                    ctaClearance: _ctaClearance(context),
+                    child: body,
+                  ),
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: AnimatedPadding(
@@ -96,5 +105,13 @@ class WalletCreationFlowScaffold extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double _ctaClearance(BuildContext context) {
+    return MediaQuery.viewInsetsOf(context).bottom +
+        _ctaBottomPadding +
+        _ctaHeight +
+        _contentToCtaSpacing +
+        (ctaMessage == null ? 0 : _ctaMessageHeight + _ctaMessageSpacing);
   }
 }

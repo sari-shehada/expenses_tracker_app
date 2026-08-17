@@ -1,6 +1,7 @@
 import 'package:expenses_tracker/app/app_theme.dart';
 import 'package:expenses_tracker/app/widgets/app_primary_cta_button.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_flow_scaffold.dart';
+import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_scroll_view.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,6 +67,53 @@ void main() {
     );
 
     expect(bodyRect.bottom, greaterThan(ctaRect.top));
+  });
+
+  testWidgets('provides the shared CTA clearance to the step body', (
+    tester,
+  ) async {
+    await _pumpScaffold(
+      tester,
+      step: 2,
+      body: const _FlowMetricsProbe(),
+      onBack: () {},
+      onCtaPressed: () {},
+    );
+
+    expect(find.text('88.0'), findsOneWidget);
+  });
+
+  testWidgets('includes the CTA message in the shared clearance', (
+    tester,
+  ) async {
+    await _pumpScaffold(
+      tester,
+      step: 3,
+      body: const _FlowMetricsProbe(),
+      ctaMessage: const SizedBox(height: 48),
+      onBack: () {},
+      onCtaPressed: () {},
+    );
+
+    expect(find.text('144.0'), findsOneWidget);
+  });
+
+  testWidgets('includes the keyboard inset in the shared clearance', (
+    tester,
+  ) async {
+    await _pumpScaffold(
+      tester,
+      step: 1,
+      body: const _FlowMetricsProbe(),
+      onBack: () {},
+      onCtaPressed: () {},
+    );
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 220);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pump();
+
+    expect(find.text('308.0'), findsOneWidget);
   });
 
   testWidgets('forwards an optional accent to the progress and CTA', (
@@ -153,6 +201,7 @@ Future<void> _pumpScaffold(
   required VoidCallback onCtaPressed,
   bool isCtaLoading = false,
   Color? accentColor,
+  Widget? ctaMessage,
   Size size = const Size(402, 874),
   Widget body = const Center(child: Text('Step content')),
 }) {
@@ -172,10 +221,20 @@ Future<void> _pumpScaffold(
         ctaLoadingLabel: 'Creating wallet',
         isCtaLoading: isCtaLoading,
         accentColor: accentColor,
+        ctaMessage: ctaMessage,
         onCtaPressed: onCtaPressed,
         backButtonKey: const ValueKey('flow-back-button'),
         ctaButtonKey: const ValueKey('flow-cta-button'),
       ),
     ),
   );
+}
+
+class _FlowMetricsProbe extends StatelessWidget {
+  const _FlowMetricsProbe();
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(WalletCreationFlowMetrics.of(context).ctaClearance.toString());
+  }
 }
