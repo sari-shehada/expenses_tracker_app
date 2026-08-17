@@ -170,7 +170,12 @@ void main() {
     expect(overlappingRowRect.right, greaterThan(ctaRect.right));
   });
 
-  testWidgets('scrolls the final currency above the CTA', (tester) async {
+  testWidgets('scrolls beneath the safe area while clearing the CTA', (
+    tester,
+  ) async {
+    tester.view.padding = const FakeViewPadding(bottom: 34);
+    addTearDown(tester.view.resetPadding);
+
     await _pumpStep(
       tester,
       currencyOptions: longCurrencyList,
@@ -190,6 +195,7 @@ void main() {
       find.byKey(const ValueKey('wallet-currency-continue')),
     );
 
+    expect(tester.getRect(find.byType(CustomScrollView)).bottom, 568);
     expect(ctaRect.top - finalCurrencyRect.bottom, closeTo(24, 0.01));
   });
 

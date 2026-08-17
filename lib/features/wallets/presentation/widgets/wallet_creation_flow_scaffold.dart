@@ -45,6 +45,7 @@ class WalletCreationFlowScaffold extends StatelessWidget {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
             AppPageHeader(
@@ -67,9 +68,7 @@ class WalletCreationFlowScaffold extends StatelessWidget {
                       key: const ValueKey('wallet-creation-keyboard-inset'),
                       duration: _keyboardInsetAnimationDuration,
                       curve: Curves.easeOutCubic,
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.viewInsetsOf(context).bottom,
-                      ),
+                      padding: EdgeInsets.only(bottom: _bottomInset(context)),
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
                         child: Center(
@@ -108,10 +107,15 @@ class WalletCreationFlowScaffold extends StatelessWidget {
   }
 
   double _ctaClearance(BuildContext context) {
-    return MediaQuery.viewInsetsOf(context).bottom +
+    return _bottomInset(context) +
         _ctaBottomPadding +
         _ctaHeight +
         _contentToCtaSpacing +
         (ctaMessage == null ? 0 : _ctaMessageHeight + _ctaMessageSpacing);
+  }
+
+  double _bottomInset(BuildContext context) {
+    return MediaQuery.viewInsetsOf(context).bottom +
+        MediaQuery.paddingOf(context).bottom;
   }
 }

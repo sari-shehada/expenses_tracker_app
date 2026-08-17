@@ -69,6 +69,32 @@ void main() {
     expect(bodyRect.bottom, greaterThan(ctaRect.top));
   });
 
+  testWidgets('extends the body beneath the bottom safe area', (tester) async {
+    tester.view.padding = const FakeViewPadding(bottom: 34);
+    addTearDown(tester.view.resetPadding);
+
+    await _pumpScaffold(
+      tester,
+      step: 2,
+      body: const ColoredBox(
+        key: ValueKey('flow-body'),
+        color: Colors.white,
+        child: _FlowMetricsProbe(),
+      ),
+      onBack: () {},
+      onCtaPressed: () {},
+    );
+
+    final bodyRect = tester.getRect(find.byKey(const ValueKey('flow-body')));
+    final ctaRect = tester.getRect(
+      find.byKey(const ValueKey('flow-cta-button')),
+    );
+
+    expect(bodyRect.bottom, 874);
+    expect(874 - ctaRect.bottom, 50);
+    expect(find.text('122.0'), findsOneWidget);
+  });
+
   testWidgets('provides the shared CTA clearance to the step body', (
     tester,
   ) async {
