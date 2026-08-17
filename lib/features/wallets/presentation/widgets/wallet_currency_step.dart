@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../currencies/domain/currency.dart';
 import '../../../currencies/presentation/widgets/currency_selector.dart';
 import 'wallet_creation_flow_scaffold.dart';
+import 'wallet_creation_step_scroll_view.dart';
 
 class WalletCurrencyStep extends StatelessWidget {
   const WalletCurrencyStep({
@@ -105,7 +106,14 @@ class WalletCurrencyStepBody extends StatelessWidget {
             searchController: searchController,
             searchFocusNode: searchFocusNode,
             searchPadding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-            listPadding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            listPadding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+            optionsScrollViewBuilder: (context, slivers) {
+              return WalletCreationStepScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                slivers: slivers,
+              );
+            },
           ),
         ),
       ],

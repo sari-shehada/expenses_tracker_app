@@ -4,6 +4,7 @@ import 'package:expenses_tracker/app/app_theme.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency.dart';
 import 'package:expenses_tracker/features/currencies/presentation/widgets/currency_selector.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_currency_step.dart';
+import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -40,7 +41,8 @@ void main() {
       find.byType(CurrencySelector),
     );
     expect(selector.searchPadding, const EdgeInsets.fromLTRB(20, 8, 20, 16));
-    expect(selector.listPadding, const EdgeInsets.fromLTRB(20, 0, 20, 24));
+    expect(selector.listPadding, const EdgeInsets.fromLTRB(20, 0, 20, 0));
+    expect(find.byType(WalletCreationStepScrollView), findsOneWidget);
   });
 
   testWidgets('keeps Continue disabled until the parent retains a selection', (

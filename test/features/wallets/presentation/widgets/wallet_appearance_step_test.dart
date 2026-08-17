@@ -6,6 +6,7 @@ import 'package:expenses_tracker/features/wallets/domain/wallet_appearance.dart'
 import 'package:expenses_tracker/features/wallets/presentation/wallet_color_palette.dart';
 import 'package:expenses_tracker/features/wallets/presentation/wallet_icon_catalog.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_appearance_step.dart';
+import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -133,7 +134,7 @@ void main() {
       find.byKey(const ValueKey('wallet-appearance-create')).hitTestable(),
       findsOneWidget,
     );
-    expect(find.byType(SingleChildScrollView), findsOneWidget);
+    expect(find.byType(WalletCreationStepScrollView), findsOneWidget);
   });
 
   testWidgets('meets iOS tap-target and labeling accessibility guidelines', (

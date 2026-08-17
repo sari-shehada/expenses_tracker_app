@@ -33,6 +33,8 @@ void main() {
     expect(find.text('Select Currency'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Search currency'), findsOneWidget);
     expect(find.byType(CurrencyFlag), findsNWidgets(2));
+    expect(find.byType(CustomScrollView), findsOneWidget);
+    expect(find.byType(SliverList), findsOneWidget);
 
     expect(
       tester.getTopLeft(find.byKey(const ValueKey('currency-search-field'))),

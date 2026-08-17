@@ -5,6 +5,7 @@ import '../../domain/wallet_appearance.dart';
 import '../wallet_color_palette.dart';
 import '../wallet_icon_catalog.dart';
 import 'wallet_creation_flow_scaffold.dart';
+import 'wallet_creation_step_scroll_view.dart';
 
 class WalletAppearanceStep extends StatelessWidget {
   const WalletAppearanceStep({
@@ -84,57 +85,61 @@ class WalletAppearanceStepBody extends StatelessWidget {
         ? Duration.zero
         : AppMotion.colorTransitionDuration;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Personalize your wallet',
-                  style: TextStyle(
-                    color: colors.onSurface,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                  ),
+    return WalletCreationStepScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Personalize your wallet',
+                      style: TextStyle(
+                        color: colors.onSurface,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Choose a color and icon to identify this wallet at a glance',
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 14,
+                        height: 20 / 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Choose a color and icon to identify this wallet at a glance',
-                  style: TextStyle(
-                    color: colors.onSurfaceVariant,
-                    fontSize: 14,
-                    height: 20 / 14,
-                    fontWeight: FontWeight.w400,
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _ColorPicker(
+                      selectedPalette: selectedPalette,
+                      onSelected: onColorSelected,
+                    ),
+                    const SizedBox(height: 28),
+                    _IconPicker(
+                      selectedIcon: selectedIcon,
+                      selectedPalette: selectedPalette,
+                      colorAnimationDuration: colorAnimationDuration,
+                      onSelected: onIconSelected,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _ColorPicker(
-                  selectedPalette: selectedPalette,
-                  onSelected: onColorSelected,
-                ),
-                const SizedBox(height: 28),
-                _IconPicker(
-                  selectedIcon: selectedIcon,
-                  selectedPalette: selectedPalette,
-                  colorAnimationDuration: colorAnimationDuration,
-                  onSelected: onIconSelected,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

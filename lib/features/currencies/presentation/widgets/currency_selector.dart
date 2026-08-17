@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../domain/currency.dart';
 import '../currency_flag.dart';
 
+typedef CurrencyOptionsScrollViewBuilder =
+    Widget Function(BuildContext context, List<Widget> slivers);
+
 class CurrencySelector extends StatefulWidget {
   const CurrencySelector({
     required this.currencies,
@@ -12,6 +15,7 @@ class CurrencySelector extends StatefulWidget {
     this.searchFocusNode,
     this.searchPadding = const EdgeInsets.fromLTRB(20, 4, 20, 12),
     this.listPadding = const EdgeInsets.fromLTRB(20, 0, 20, 20),
+    this.optionsScrollViewBuilder,
     super.key,
   });
 
@@ -22,6 +26,7 @@ class CurrencySelector extends StatefulWidget {
   final ValueChanged<Currency> onSelected;
   final EdgeInsetsGeometry searchPadding;
   final EdgeInsetsGeometry listPadding;
+  final CurrencyOptionsScrollViewBuilder? optionsScrollViewBuilder;
 
   @override
   State<CurrencySelector> createState() => _CurrencySelectorState();
@@ -59,23 +64,41 @@ class _CurrencySelectorState extends State<CurrencySelector> {
         Expanded(
           child: currencies.isEmpty
               ? const _EmptySearchResults()
-              : ListView.separated(
-                  padding: widget.listPadding,
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  itemCount: currencies.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final currency = currencies[index];
-                    return _CurrencyOption(
-                      currency: currency,
-                      isSelected: currency.code == widget.selectedCode,
-                      onSelected: () => widget.onSelected(currency),
-                    );
-                  },
-                ),
+              : _buildOptions(context, currencies),
         ),
       ],
+    );
+  }
+
+  Widget _buildOptions(BuildContext context, List<Currency> currencies) {
+    Widget buildOption(BuildContext context, int index) {
+      final currency = currencies[index];
+      return _CurrencyOption(
+        currency: currency,
+        isSelected: currency.code == widget.selectedCode,
+        onSelected: () => widget.onSelected(currency),
+      );
+    }
+
+    final scrollViewBuilder = widget.optionsScrollViewBuilder;
+    final slivers = [
+      SliverPadding(
+        padding: widget.listPadding,
+        sliver: SliverList.separated(
+          itemCount: currencies.length,
+          itemBuilder: buildOption,
+          separatorBuilder: (_, _) => const SizedBox(height: 8),
+        ),
+      ),
+    ];
+
+    if (scrollViewBuilder != null) {
+      return scrollViewBuilder(context, slivers);
+    }
+
+    return CustomScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      slivers: slivers,
     );
   }
 

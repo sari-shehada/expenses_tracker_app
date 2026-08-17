@@ -11,6 +11,7 @@ import 'package:expenses_tracker/features/wallets/presentation/pages/wallet_crea
 import 'package:expenses_tracker/features/wallets/presentation/wallet_color_palette.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_flow_scaffold.dart';
 import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_indicator.dart';
+import 'package:expenses_tracker/features/wallets/presentation/widgets/wallet_creation_step_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -46,6 +47,7 @@ void main() {
           .height,
       48,
     );
+    expect(find.byType(WalletCreationStepScrollView), findsOneWidget);
   });
 
   testWidgets('focuses the Wallet name field when the flow opens', (
