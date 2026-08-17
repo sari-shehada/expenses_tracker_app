@@ -27,6 +27,9 @@ class AuthenticatedAppShell extends StatefulWidget {
 }
 
 class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
+  static const _navigationHorizontalInset = 24.0;
+  static const _navigationBottomSpacing = 16.0;
+
   var _selectedIndex = 0;
 
   @override
@@ -42,20 +45,29 @@ class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
     ];
 
     return Scaffold(
-      extendBody: true,
-      body: pages[_selectedIndex],
-      bottomNavigationBar: SafeArea(
-        top: false,
-        minimum: const EdgeInsets.symmetric(horizontal: 24),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          heightFactor: 1,
-          child: AppBottomNavigationBar(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) =>
-                setState(() => _selectedIndex = index),
+      body: Stack(
+        key: const ValueKey('authenticated-app-shell-overlay'),
+        fit: StackFit.expand,
+        children: [
+          pages[_selectedIndex],
+          SafeArea(
+            top: false,
+            minimum: const EdgeInsets.symmetric(
+              horizontal: _navigationHorizontalInset,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: _navigationBottomSpacing),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: AppBottomNavigationBar(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: (index) =>
+                      setState(() => _selectedIndex = index),
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

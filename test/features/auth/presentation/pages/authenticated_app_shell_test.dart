@@ -35,13 +35,38 @@ void main() {
       tester.getSize(find.byType(AppBottomNavigationBar)),
       const Size(354, 72),
     );
-    expect(tester.widget<Scaffold>(find.byType(Scaffold)).extendBody, isTrue);
+    expect(
+      tester.widget<Scaffold>(find.byType(Scaffold)).bottomNavigationBar,
+      isNull,
+    );
+    expect(
+      find.byKey(const ValueKey('authenticated-app-shell-overlay')),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('positions the navigation above the bottom safe area', (
+  testWidgets('overlays the navigation above the body', (tester) async {
+    await _pumpPage(tester);
+
+    final shellBottom = tester.getBottomRight(find.byType(Scaffold)).dy;
+    final pageBottom = tester
+        .getBottomRight(
+          find.byKey(const ValueKey('authenticated-app-shell-overlay')),
+        )
+        .dy;
+    final navigationBottom = tester
+        .getBottomRight(find.byType(AppBottomNavigationBar))
+        .dy;
+
+    expect(pageBottom, shellBottom);
+    expect(navigationBottom, lessThan(pageBottom));
+  });
+
+  testWidgets('positions the navigation above the bottom safe area and gap', (
     tester,
   ) async {
     const bottomSafeArea = 34.0;
+    const navigationBottomSpacing = 16.0;
     await _pumpPage(tester, bottomSafeArea: bottomSafeArea);
 
     final navigationBottom = tester
@@ -49,7 +74,10 @@ void main() {
         .dy;
     final shellBottom = tester.getBottomRight(find.byType(Scaffold)).dy;
 
-    expect(shellBottom - navigationBottom, bottomSafeArea);
+    expect(
+      shellBottom - navigationBottom,
+      bottomSafeArea + navigationBottomSpacing,
+    );
   });
 
   testWidgets('keeps Add Sheet as a placeholder action', (tester) async {
