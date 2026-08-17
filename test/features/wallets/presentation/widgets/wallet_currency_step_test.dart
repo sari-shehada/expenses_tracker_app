@@ -25,6 +25,38 @@ const currencies = [
   ),
 ];
 
+const longCurrencyList = [
+  ...currencies,
+  Currency(
+    code: 'EUR',
+    name: 'Euro',
+    symbol: '€',
+    nativeSymbol: '€',
+    decimalDigits: 2,
+  ),
+  Currency(
+    code: 'GBP',
+    name: 'British Pound',
+    symbol: '£',
+    nativeSymbol: '£',
+    decimalDigits: 2,
+  ),
+  Currency(
+    code: 'JPY',
+    name: 'Japanese Yen',
+    symbol: '¥',
+    nativeSymbol: '￥',
+    decimalDigits: 0,
+  ),
+  Currency(
+    code: 'CAD',
+    name: 'Canadian Dollar',
+    symbol: r'CA$',
+    nativeSymbol: r'$',
+    decimalDigits: 2,
+  ),
+];
+
 void main() {
   testWidgets('matches the Wallet currency step content and spacing', (
     tester,
@@ -108,6 +140,59 @@ void main() {
     );
   });
 
+  testWidgets('allows currency rows to scroll beneath the CTA', (tester) async {
+    await _pumpStep(
+      tester,
+      currencyOptions: longCurrencyList,
+      size: const Size(320, 568),
+    );
+
+    final ctaRect = tester.getRect(
+      find.byKey(const ValueKey('wallet-currency-continue')),
+    );
+    Rect? overlappingRowRect;
+
+    for (final currency in longCurrencyList) {
+      final rowFinder = find.byKey(ValueKey(currency.code));
+      if (rowFinder.evaluate().isEmpty) {
+        continue;
+      }
+
+      final rowRect = tester.getRect(rowFinder);
+      if (rowRect.overlaps(ctaRect)) {
+        overlappingRowRect = rowRect;
+        break;
+      }
+    }
+
+    expect(overlappingRowRect, isNotNull);
+    expect(overlappingRowRect!.left, lessThan(ctaRect.left));
+    expect(overlappingRowRect.right, greaterThan(ctaRect.right));
+  });
+
+  testWidgets('scrolls the final currency above the CTA', (tester) async {
+    await _pumpStep(
+      tester,
+      currencyOptions: longCurrencyList,
+      size: const Size(320, 568),
+    );
+
+    final scrollable = find.descendant(
+      of: find.byType(WalletCreationStepScrollView),
+      matching: find.byType(Scrollable),
+    );
+    final position = tester.state<ScrollableState>(scrollable).position;
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pump();
+
+    final finalCurrencyRect = tester.getRect(find.byKey(const ValueKey('CAD')));
+    final ctaRect = tester.getRect(
+      find.byKey(const ValueKey('wallet-currency-continue')),
+    );
+
+    expect(ctaRect.top - finalCurrencyRect.bottom, closeTo(24, 0.01));
+  });
+
   testWidgets('meets tap-target and labeling accessibility guidelines', (
     tester,
   ) async {
@@ -127,8 +212,10 @@ Future<void> _pumpStep(
   WidgetTester tester, {
   String? selectedCode,
   VoidCallback? onContinue,
+  List<Currency> currencyOptions = currencies,
+  Size size = const Size(402, 874),
 }) {
-  tester.view.physicalSize = const Size(402, 874);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -137,6 +224,7 @@ Future<void> _pumpStep(
     MaterialApp(
       theme: AppTheme.light,
       home: _WalletCurrencyStepHarness(
+        currencies: currencyOptions,
         initialSelectedCode: selectedCode,
         onContinue: onContinue ?? () {},
       ),
@@ -146,10 +234,12 @@ Future<void> _pumpStep(
 
 class _WalletCurrencyStepHarness extends StatefulWidget {
   const _WalletCurrencyStepHarness({
+    required this.currencies,
     required this.initialSelectedCode,
     required this.onContinue,
   });
 
+  final List<Currency> currencies;
   final String? initialSelectedCode;
   final VoidCallback onContinue;
 
@@ -165,7 +255,7 @@ class _WalletCurrencyStepHarnessState
   @override
   Widget build(BuildContext context) {
     return WalletCurrencyStep(
-      currencies: currencies,
+      currencies: widget.currencies,
       selectedCode: _selectedCode,
       onSelected: (currency) => setState(() => _selectedCode = currency.code),
       onBack: () {},

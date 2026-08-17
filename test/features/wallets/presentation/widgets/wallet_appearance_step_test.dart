@@ -137,6 +137,31 @@ void main() {
     expect(find.byType(WalletCreationStepScrollView), findsOneWidget);
   });
 
+  testWidgets('scrolls the final appearance option above the CTA', (
+    tester,
+  ) async {
+    await _pumpStep(tester, size: const Size(320, 568));
+
+    final scrollable = find
+        .descendant(
+          of: find.byType(WalletCreationStepScrollView),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    final position = tester.state<ScrollableState>(scrollable).position;
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pump();
+
+    final finalOptionRect = tester.getRect(
+      find.byKey(const ValueKey('wallet-creation-icon-business')),
+    );
+    final ctaRect = tester.getRect(
+      find.byKey(const ValueKey('wallet-appearance-create')),
+    );
+
+    expect(ctaRect.top - finalOptionRect.bottom, closeTo(24, 0.01));
+  });
+
   testWidgets('meets iOS tap-target and labeling accessibility guidelines', (
     tester,
   ) async {
