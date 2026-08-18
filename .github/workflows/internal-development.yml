@@ -459,7 +459,7 @@ jobs:
             echo "DEVELOPMENT_TEAM = $profile_team"
             echo 'CODE_SIGN_IDENTITY = Apple Distribution'
             echo 'CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution'
-            echo "PROVISIONING_PROFILE_SPECIFIER = $profile_uuid"
+            echo "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*][target=Runner] = $profile_uuid"
           } > "$xcconfig_path"
 
           python3 - \
