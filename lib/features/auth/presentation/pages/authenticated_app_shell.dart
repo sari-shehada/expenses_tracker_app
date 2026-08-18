@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/app_shell_layout.dart';
 import '../../../../app/widgets/app_bottom_navigation_bar.dart';
 import '../../../currencies/domain/currency_catalog.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
@@ -27,9 +28,6 @@ class AuthenticatedAppShell extends StatefulWidget {
 }
 
 class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
-  static const _navigationHorizontalInset = 24.0;
-  static const _navigationBottomSpacing = 16.0;
-
   var _selectedIndex = 0;
 
   @override
@@ -53,10 +51,12 @@ class _AuthenticatedAppShellState extends State<AuthenticatedAppShell> {
           SafeArea(
             top: false,
             minimum: const EdgeInsets.symmetric(
-              horizontal: _navigationHorizontalInset,
+              horizontal: AppShellLayout.navigationHorizontalInset,
             ),
             child: Padding(
-              padding: const EdgeInsets.only(bottom: _navigationBottomSpacing),
+              padding: const EdgeInsets.only(
+                bottom: AppShellLayout.navigationBottomSpacing,
+              ),
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: AppBottomNavigationBar(

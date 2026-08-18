@@ -1,4 +1,5 @@
 import 'package:expenses_tracker/app/widgets/app_bottom_navigation_bar.dart';
+import 'package:expenses_tracker/app/app_shell_layout.dart';
 import 'package:expenses_tracker/features/auth/domain/auth_user.dart';
 import 'package:expenses_tracker/features/auth/presentation/pages/authenticated_app_shell.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency.dart';
@@ -108,6 +109,37 @@ void main() {
     expect(find.byKey(const ValueKey('sign-out-button')), findsOneWidget);
     expect(find.text('No sheets yet'), findsNothing);
     expect(find.text('No Wallets yet.'), findsNothing);
+  });
+
+  testWidgets('each destination clears the overlaid navigation', (
+    tester,
+  ) async {
+    await _pumpPage(tester);
+
+    void expectNavigationClearance() {
+      expect(find.byType(CustomScrollView), findsOneWidget);
+      final scrollView = tester.widget<CustomScrollView>(
+        find.byType(CustomScrollView),
+      );
+      final adapter = scrollView.slivers.last as SliverToBoxAdapter;
+      final clearance = adapter.child as SizedBox;
+
+      expect(
+        clearance.key,
+        const ValueKey(AppShellLayout.navigationClearanceKey),
+      );
+      expect(clearance.height, AppShellLayout.destinationBottomClearance);
+    }
+
+    expectNavigationClearance();
+
+    await tester.tap(find.text('Wallets'));
+    await tester.pumpAndSettle();
+    expectNavigationClearance();
+
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+    expectNavigationClearance();
   });
 
   testWidgets('signs out from Settings', (tester) async {

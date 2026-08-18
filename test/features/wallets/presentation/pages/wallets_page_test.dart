@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:expenses_tracker/app/app_theme.dart';
+import 'package:expenses_tracker/app/app_shell_layout.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency.dart';
 import 'package:expenses_tracker/features/currencies/domain/currency_catalog.dart';
 import 'package:expenses_tracker/features/wallets/domain/wallet.dart';
@@ -18,8 +19,22 @@ void main() {
     await _pumpPage(tester, repository: repository);
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(CustomScrollView), findsOneWidget);
+    expect(find.byType(ListView), findsNothing);
     expect(find.text('Wallets'), findsOneWidget);
     expect(find.byKey(const ValueKey('add-wallet-button')), findsOneWidget);
+  });
+
+  testWidgets('provides trailing clearance for the shell navigation', (
+    tester,
+  ) async {
+    final repository = _FakeWalletRepository();
+
+    await _pumpPage(tester, repository: repository);
+    repository.addWallets(const []);
+    await tester.pump();
+
+    _expectNavigationClearance(tester);
   });
 
   testWidgets('shows an empty state when there are no Wallets', (tester) async {
@@ -89,6 +104,27 @@ void main() {
 
     expect(find.text('Wallet 12').hitTestable(), findsOneWidget);
     expect(find.byKey(const ValueKey('add-wallet-button')), findsOneWidget);
+
+    await tester.fling(
+      find.byType(CustomScrollView),
+      const Offset(0, -5000),
+      1000,
+    );
+    await tester.pumpAndSettle();
+
+    final scrollViewBottom = tester
+        .getBottomRight(find.byType(CustomScrollView))
+        .dy;
+    final finalCardBottom = tester
+        .getBottomRight(find.byKey(const ValueKey('wallet-card-wallet-11')))
+        .dy;
+
+    expect(
+      finalCardBottom,
+      lessThanOrEqualTo(
+        scrollViewBottom - AppShellLayout.destinationBottomClearance,
+      ),
+    );
   });
 
   testWidgets('reports a failed Wallet load and retries', (tester) async {
@@ -132,6 +168,17 @@ void main() {
       semantics.dispose();
     }
   });
+}
+
+void _expectNavigationClearance(WidgetTester tester) {
+  final scrollView = tester.widget<CustomScrollView>(
+    find.byType(CustomScrollView),
+  );
+  final adapter = scrollView.slivers.last as SliverToBoxAdapter;
+  final clearance = adapter.child as SizedBox;
+
+  expect(clearance.key, const ValueKey(AppShellLayout.navigationClearanceKey));
+  expect(clearance.height, AppShellLayout.destinationBottomClearance);
 }
 
 Future<void> _pumpPage(

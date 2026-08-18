@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/app_shell_layout.dart';
 import '../../../currencies/domain/currency_catalog.dart';
 import '../../domain/wallet.dart';
 import '../../domain/wallet_repository.dart';
@@ -34,49 +35,79 @@ class _WalletsPageState extends State<WalletsPage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Column(
-        children: [
-          _WalletsHeader(onAddWallet: _openWalletCreation),
-          Expanded(
-            child: StreamBuilder<List<Wallet>>(
-              stream: _wallets,
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return _WalletsLoadFailure(onRetry: _reloadWallets);
-                }
-
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final wallets = snapshot.data!;
-                if (wallets.isEmpty) {
-                  return const Center(child: Text('No Wallets yet.'));
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                  itemCount: wallets.length,
-                  itemBuilder: (context, index) {
-                    final wallet = wallets[index];
-                    return Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 720),
-                        child: WalletCard(
-                          key: ValueKey('wallet-card-${wallet.id}'),
-                          wallet: wallet,
-                        ),
-                      ),
-                    );
-                  },
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                );
-              },
+      child: StreamBuilder<List<Wallet>>(
+        stream: _wallets,
+        builder: (context, snapshot) => CustomScrollView(
+          slivers: [
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _WalletsHeaderDelegate(
+                onAddWallet: _openWalletCreation,
+              ),
             ),
-          ),
-        ],
+            ..._buildWalletSlivers(snapshot),
+            const SliverToBoxAdapter(
+              child: SizedBox(
+                key: ValueKey(AppShellLayout.navigationClearanceKey),
+                height: AppShellLayout.destinationBottomClearance,
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  List<Widget> _buildWalletSlivers(AsyncSnapshot<List<Wallet>> snapshot) {
+    if (snapshot.hasError) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: _WalletsLoadFailure(onRetry: _reloadWallets),
+        ),
+      ];
+    }
+
+    if (!snapshot.hasData) {
+      return const [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ];
+    }
+
+    final wallets = snapshot.data!;
+    if (wallets.isEmpty) {
+      return const [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(child: Text('No Wallets yet.')),
+        ),
+      ];
+    }
+
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+        sliver: SliverList.separated(
+          itemCount: wallets.length,
+          itemBuilder: (context, index) {
+            final wallet = wallets[index];
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: WalletCard(
+                  key: ValueKey('wallet-card-${wallet.id}'),
+                  wallet: wallet,
+                ),
+              ),
+            );
+          },
+          separatorBuilder: (_, _) => const SizedBox(height: 12),
+        ),
+      ),
+    ];
   }
 
   Stream<List<Wallet>> _watchWallets() {
@@ -150,6 +181,36 @@ class _WalletsHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+class _WalletsHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const _WalletsHeaderDelegate({required this.onAddWallet});
+
+  final VoidCallback onAddWallet;
+
+  static const _extent = 76.0;
+
+  @override
+  double get minExtent => _extent;
+
+  @override
+  double get maxExtent => _extent;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return ColoredBox(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: _WalletsHeader(onAddWallet: onAddWallet),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_WalletsHeaderDelegate oldDelegate) =>
+      onAddWallet != oldDelegate.onAddWallet;
 }
 
 class _WalletsLoadFailure extends StatelessWidget {

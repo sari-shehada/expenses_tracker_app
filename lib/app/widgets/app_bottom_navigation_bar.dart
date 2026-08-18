@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../app_shell_layout.dart';
+
 class AppBottomNavigationBar extends StatelessWidget {
   const AppBottomNavigationBar({
     required this.selectedIndex,
@@ -16,7 +18,7 @@ class AppBottomNavigationBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
 
-  static const double height = 72;
+  static const double height = AppShellLayout.navigationHeight;
   static const double maxWidth = 354;
 
   static const _destinations = [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../app/app_shell_layout.dart';
 import '../widgets/sheets_empty_state_cta.dart';
 
 class SheetsPage extends StatelessWidget {
@@ -15,41 +16,50 @@ class SheetsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: _horizontalPadding,
-            vertical: _verticalPadding,
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: (constraints.maxHeight - (_verticalPadding * 2)).clamp(
-                0.0,
-                double.infinity,
-              ),
+    return SafeArea(
+      top: false,
+      child: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              _horizontalPadding,
+              _verticalPadding,
+              _horizontalPadding,
+              0,
             ),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                spacing: _contentSpacing,
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/sheets_empty_state.svg',
-                    key: const ValueKey('sheets-empty-state-illustration'),
-                    width: _illustrationSize,
-                    height: _illustrationSize,
-                    fit: BoxFit.contain,
-                    excludeFromSemantics: true,
+            sliver: SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: _verticalPadding),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: _contentSpacing,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/images/sheets_empty_state.svg',
+                        key: const ValueKey('sheets-empty-state-illustration'),
+                        width: _illustrationSize,
+                        height: _illustrationSize,
+                        fit: BoxFit.contain,
+                        excludeFromSemantics: true,
+                      ),
+                      const _SheetsEmptyStateText(),
+                      SheetsEmptyStateCta(onPressed: onAddSheet),
+                    ],
                   ),
-                  const _SheetsEmptyStateText(),
-                  SheetsEmptyStateCta(onPressed: onAddSheet),
-                ],
+                ),
               ),
             ),
           ),
-        );
-      },
+          const SliverToBoxAdapter(
+            child: SizedBox(
+              key: ValueKey(AppShellLayout.navigationClearanceKey),
+              height: AppShellLayout.destinationBottomClearance,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
