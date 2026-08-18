@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../../app/app_shell_layout.dart';
 import '../widgets/sheets_empty_state_cta.dart';
 
 class SheetsPage extends StatelessWidget {
@@ -50,12 +49,6 @@ class SheetsPage extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: SizedBox(
-              key: ValueKey(AppShellLayout.navigationClearanceKey),
-              height: AppShellLayout.destinationBottomClearance,
             ),
           ),
         ],

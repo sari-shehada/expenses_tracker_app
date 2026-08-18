@@ -1,5 +1,4 @@
 import 'package:expenses_tracker/app/app_theme.dart';
-import 'package:expenses_tracker/app/app_shell_layout.dart';
 import 'package:expenses_tracker/features/sheets/presentation/pages/sheets_page.dart';
 import 'package:expenses_tracker/features/sheets/presentation/widgets/sheets_empty_state_cta.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +59,7 @@ void main() {
     expect(addSheetCalls, 1);
   });
 
-  testWidgets('uses slivers with clearance for the shell navigation', (
+  testWidgets('uses a non-scrolling sliver empty state when content fits', (
     tester,
   ) async {
     await _pumpPage(tester, onAddSheet: () {});
@@ -68,7 +67,16 @@ void main() {
     expect(find.byType(CustomScrollView), findsOneWidget);
     expect(find.byType(SingleChildScrollView), findsNothing);
     expect(find.byType(SliverFillRemaining), findsOneWidget);
-    _expectNavigationClearance(tester);
+
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable))
+        .position;
+    expect(position.maxScrollExtent, 0);
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -200));
+    await tester.pumpAndSettle();
+
+    expect(position.pixels, 0);
   });
 
   testWidgets('keeps the empty state usable on a short screen', (tester) async {
@@ -83,17 +91,6 @@ void main() {
     expect(find.byType(CustomScrollView), findsOneWidget);
     expect(find.byType(SheetsEmptyStateCta), findsOneWidget);
   });
-}
-
-void _expectNavigationClearance(WidgetTester tester) {
-  final scrollView = tester.widget<CustomScrollView>(
-    find.byType(CustomScrollView),
-  );
-  final adapter = scrollView.slivers.last as SliverToBoxAdapter;
-  final clearance = adapter.child as SizedBox;
-
-  expect(clearance.key, const ValueKey(AppShellLayout.navigationClearanceKey));
-  expect(clearance.height, AppShellLayout.destinationBottomClearance);
 }
 
 Future<void> _pumpPage(

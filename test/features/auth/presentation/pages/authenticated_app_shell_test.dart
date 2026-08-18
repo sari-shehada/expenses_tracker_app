@@ -111,9 +111,7 @@ void main() {
     expect(find.text('No Wallets yet.'), findsNothing);
   });
 
-  testWidgets('each destination clears the overlaid navigation', (
-    tester,
-  ) async {
+  testWidgets('destinations use shell-aware sliver layouts', (tester) async {
     await _pumpPage(tester);
 
     void expectNavigationClearance() {
@@ -131,7 +129,11 @@ void main() {
       expect(clearance.height, AppShellLayout.destinationBottomClearance);
     }
 
-    expectNavigationClearance();
+    expect(find.byType(CustomScrollView), findsOneWidget);
+    final sheetsScrollView = tester.widget<CustomScrollView>(
+      find.byType(CustomScrollView),
+    );
+    expect(sheetsScrollView.slivers.last, isNot(isA<SliverToBoxAdapter>()));
 
     await tester.tap(find.text('Wallets'));
     await tester.pumpAndSettle();
