@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_spacing.dart';
 import 'wallet_creation_flow_scaffold.dart';
 import 'wallet_creation_step_scroll_view.dart';
 
@@ -85,7 +86,7 @@ class WalletNameStepBody extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const AddVerticalSpacing(8),
                 Text(
                   'Give your wallet a name that describes its funding source — like “Cash”, “Chase Visa”, or “Mom”.',
                   style: TextStyle(
@@ -95,7 +96,7 @@ class WalletNameStepBody extends StatelessWidget {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                const SizedBox(height: 28),
+                const AddVerticalSpacing(28),
                 const Text(
                   'Wallet Name',
                   style: TextStyle(
@@ -104,7 +105,7 @@ class WalletNameStepBody extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const AddVerticalSpacing(8),
                 TextField(
                   key: const ValueKey('wallet-name-field'),
                   controller: controller,

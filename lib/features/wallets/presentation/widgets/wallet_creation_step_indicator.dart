@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_motion.dart';
+import '../../../../app/widgets/app_spacing.dart';
 import 'wallet_creation_motion.dart';
 
 class WalletCreationStepIndicator extends StatelessWidget {
@@ -85,7 +86,7 @@ class WalletCreationStepIndicator extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const AddVerticalSpacing(8),
             ClipRRect(
               key: const ValueKey('wallet-step-progress-track'),
               borderRadius: BorderRadius.circular(3),

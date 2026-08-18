@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/widgets/app_page_header.dart';
 import '../../../../app/widgets/app_primary_cta_button.dart';
+import '../../../../app/widgets/app_spacing.dart';
 import 'wallet_creation_step_indicator.dart';
 import 'wallet_creation_step_scroll_view.dart';
 
@@ -80,7 +81,7 @@ class WalletCreationFlowScaffold extends StatelessWidget {
                               children: [
                                 if (ctaMessage != null) ...[
                                   ctaMessage!,
-                                  const SizedBox(height: 8),
+                                  const AddVerticalSpacing(8),
                                 ],
                                 AppPrimaryCtaButton(
                                   label: ctaLabel,

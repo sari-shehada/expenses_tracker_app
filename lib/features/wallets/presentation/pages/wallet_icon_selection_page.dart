@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_spacing.dart';
 import '../../domain/wallet_appearance.dart';
 import '../wallet_color_palette.dart';
 import '../wallet_icon_catalog.dart';
@@ -61,19 +62,19 @@ class _WalletIconSelectionPageState extends State<WalletIconSelectionPage> {
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
-                          const SizedBox(height: 12),
+                          const AddVerticalSpacing(12),
                           _WalletIconPreview(
                             palette: palette,
                             iconOption: selectedIcon,
                             walletName: widget.walletName,
                           ),
-                          const SizedBox(height: 32),
+                          const AddVerticalSpacing(32),
                           Text(
                             'Choose an icon',
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
-                          const SizedBox(height: 12),
+                          const AddVerticalSpacing(12),
                           GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -220,7 +221,7 @@ class _WalletIconChoice extends StatelessWidget {
                           ? palette.accentColor
                           : colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(height: 6),
+                    const AddVerticalSpacing(6),
                     Text(
                       option.name,
                       maxLines: 1,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_spacing.dart';
 import '../../domain/currency.dart';
 import '../currency_flag.dart';
 
@@ -87,7 +88,7 @@ class _CurrencySelectorState extends State<CurrencySelector> {
         sliver: SliverList.separated(
           itemCount: currencies.length,
           itemBuilder: buildOption,
-          separatorBuilder: (_, _) => const SizedBox(height: 8),
+          separatorBuilder: (_, _) => const AddVerticalSpacing(8),
         ),
       ),
     ];
@@ -281,7 +282,7 @@ class _CurrencyOption extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const AddVerticalSpacing(2),
                           Text(
                             currency.name,
                             maxLines: 1,

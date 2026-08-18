@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_spacing.dart';
 import '../../domain/wallet_appearance.dart';
 import '../wallet_color_palette.dart';
 
@@ -57,18 +58,18 @@ class _WalletColorSelectionPageState extends State<WalletColorSelectionPage> {
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
-                          const SizedBox(height: 12),
+                          const AddVerticalSpacing(12),
                           _WalletColorPreview(
                             palette: selectedPalette,
                             walletName: widget.walletName,
                           ),
-                          const SizedBox(height: 32),
+                          const AddVerticalSpacing(32),
                           Text(
                             'Choose a color',
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
-                          const SizedBox(height: 12),
+                          const AddVerticalSpacing(12),
                           GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),

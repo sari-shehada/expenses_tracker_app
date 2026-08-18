@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/widgets/app_spacing.dart';
 import '../domain/currency.dart';
 import '../domain/currency_catalog.dart';
 import 'pages/currency_selection_page.dart';
@@ -30,7 +31,7 @@ class CurrencyPickerField extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 8),
+        const AddVerticalSpacing(8),
         _CurrencyFieldSurface(
           onTap: () => _selectCurrency(context),
           semanticsLabel: selectedCurrency == null
@@ -162,7 +163,7 @@ class _CurrencyFieldContent extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const AddVerticalSpacing(2),
                     Text(
                       selectedCurrency!.name,
                       style: textTheme.bodyMedium?.copyWith(

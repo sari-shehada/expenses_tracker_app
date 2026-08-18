@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_spacing.dart';
 import '../../../currencies/domain/currency.dart';
 import '../../../currencies/presentation/widgets/currency_selector.dart';
 import 'wallet_creation_flow_scaffold.dart';
@@ -85,7 +86,7 @@ class WalletCurrencyStepBody extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 8),
+              const AddVerticalSpacing(8),
               Text(
                 'Choose the currency for this wallet',
                 style: TextStyle(

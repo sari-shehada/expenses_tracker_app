@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../app_shell_layout.dart';
+import 'app_spacing.dart';
 
 class AppBottomNavigationBar extends StatelessWidget {
   const AppBottomNavigationBar({
@@ -131,7 +132,7 @@ class _AppNavigationTab extends StatelessWidget {
                   height: 22,
                   colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
                 ),
-                const SizedBox(height: 4),
+                const AddVerticalSpacing(4),
                 Text(
                   destination.label,
                   maxLines: 1,

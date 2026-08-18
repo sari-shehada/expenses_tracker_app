@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_motion.dart';
+import '../../../../app/widgets/app_spacing.dart';
 import '../../domain/wallet_appearance.dart';
 import '../wallet_color_palette.dart';
 import '../wallet_icon_catalog.dart';
@@ -104,7 +105,7 @@ class WalletAppearanceStepBody extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const AddVerticalSpacing(8),
                     Text(
                       'Choose a color and icon to identify this wallet at a glance',
                       style: TextStyle(
@@ -126,7 +127,7 @@ class WalletAppearanceStepBody extends StatelessWidget {
                       selectedPalette: selectedPalette,
                       onSelected: onColorSelected,
                     ),
-                    const SizedBox(height: 28),
+                    const AddVerticalSpacing(28),
                     _IconPicker(
                       selectedIcon: selectedIcon,
                       selectedPalette: selectedPalette,
@@ -187,7 +188,7 @@ class _ColorPicker extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _PickerLabel('Wallet Color'),
-        const SizedBox(height: 12),
+        const AddVerticalSpacing(12),
         SizedBox(
           height: 48,
           child: Row(
@@ -286,7 +287,7 @@ class _IconPicker extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _PickerLabel('Wallet Icon'),
-        const SizedBox(height: 12),
+        const AddVerticalSpacing(12),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -383,7 +384,7 @@ class _IconChoice extends StatelessWidget {
                       size: 20,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const AddVerticalSpacing(8),
                   Expanded(
                     child: AnimatedDefaultTextStyle(
                       duration: colorAnimationDuration,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_shell_layout.dart';
+import '../../../../app/widgets/app_spacing.dart';
 import '../../../currencies/domain/currency_catalog.dart';
 import '../../domain/wallet.dart';
 import '../../domain/wallet_repository.dart';
@@ -47,9 +48,9 @@ class _WalletsPageState extends State<WalletsPage> {
             ),
             ..._buildWalletSlivers(snapshot),
             const SliverToBoxAdapter(
-              child: SizedBox(
+              child: AddVerticalSpacing(
+                AppShellLayout.destinationBottomClearance,
                 key: ValueKey(AppShellLayout.navigationClearanceKey),
-                height: AppShellLayout.destinationBottomClearance,
               ),
             ),
           ],
@@ -104,7 +105,7 @@ class _WalletsPageState extends State<WalletsPage> {
               ),
             );
           },
-          separatorBuilder: (_, _) => const SizedBox(height: 12),
+          separatorBuilder: (_, _) => const AddVerticalSpacing(12),
         ),
       ),
     ];

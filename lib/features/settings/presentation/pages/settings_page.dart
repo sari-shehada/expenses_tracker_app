@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_shell_layout.dart';
+import '../../../../app/widgets/app_spacing.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({required this.onSignOut, super.key});
@@ -22,7 +23,7 @@ class SettingsPage extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const AddVerticalSpacing(24),
                 Card(
                   margin: EdgeInsets.zero,
                   clipBehavior: Clip.antiAlias,
@@ -37,9 +38,9 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
           const SliverToBoxAdapter(
-            child: SizedBox(
+            child: AddVerticalSpacing(
+              AppShellLayout.destinationBottomClearance,
               key: ValueKey(AppShellLayout.navigationClearanceKey),
-              height: AppShellLayout.destinationBottomClearance,
             ),
           ),
         ],

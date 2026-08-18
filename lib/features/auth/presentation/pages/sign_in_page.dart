@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_spacing.dart';
+
 class SignInPage extends StatelessWidget {
   const SignInPage({
     required this.onGoogleSignIn,
@@ -24,7 +26,7 @@ class SignInPage extends StatelessWidget {
                   'Expenses Tracker',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                const SizedBox(height: 24),
+                const AddVerticalSpacing(24),
                 if (errorMessage case final message?) ...[
                   Text(
                     message,
@@ -33,7 +35,7 @@ class SignInPage extends StatelessWidget {
                       color: Theme.of(context).colorScheme.error,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const AddVerticalSpacing(16),
                 ],
                 FilledButton(
                   onPressed: onGoogleSignIn,

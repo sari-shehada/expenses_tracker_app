@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_spacing.dart';
+
 class WalletCreationFlowMetrics extends InheritedWidget {
   const WalletCreationFlowMetrics({
     required this.ctaClearance,
@@ -49,7 +51,7 @@ class WalletCreationStepScrollView extends StatelessWidget {
       slivers: [
         ...slivers,
         SliverToBoxAdapter(
-          child: SizedBox(key: ctaClearanceKey, height: metrics.ctaClearance),
+          child: AddVerticalSpacing(metrics.ctaClearance, key: ctaClearanceKey),
         ),
       ],
     );

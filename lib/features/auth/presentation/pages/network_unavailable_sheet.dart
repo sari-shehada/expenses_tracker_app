@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/widgets/app_spacing.dart';
+
 class NetworkUnavailableSheet extends StatelessWidget {
   const NetworkUnavailableSheet({super.key});
 
@@ -25,13 +27,13 @@ class NetworkUnavailableSheet extends StatelessWidget {
               size: 32,
             ),
           ),
-          const SizedBox(height: 20),
+          const AddVerticalSpacing(20),
           Text(
             'No internet connection',
             style: Theme.of(context).textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const AddVerticalSpacing(8),
           Text(
             'Check your connection, then use Continue with Google to try again.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -39,7 +41,7 @@ class NetworkUnavailableSheet extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const AddVerticalSpacing(24),
           SizedBox(
             width: double.infinity,
             child: FilledButton.tonal(
